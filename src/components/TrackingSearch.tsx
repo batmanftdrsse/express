@@ -16,33 +16,34 @@ export default function TrackingSearch() {
   }
 
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-blue-800 py-24 sm:py-32">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white mb-4">
-          Track Your Shipment
-        </h1>
-        <p className="text-blue-100 text-lg sm:text-xl mb-12 max-w-2xl mx-auto">
-          Enter your tracking number to get real-time updates on your package location
-        </p>
-        <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4 justify-center max-w-2xl mx-auto">
-          <input
-            type="text"
-            value={trackingNumber}
-            onChange={(e) => setTrackingNumber(e.target.value)}
-            placeholder="Enter tracking number"
-            className="flex-1 px-6 py-4 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg shadow-lg"
-          />
-          <button
-            type="submit"
-            className="bg-white text-blue-600 hover:bg-blue-50 px-8 py-4 rounded-lg flex items-center justify-center gap-2 transition-colors text-lg font-semibold shadow-lg"
-          >
-            <Search className="h-6 w-6" />
-            Track
-          </button>
-        </form>
-        <p className="text-blue-100 mt-6 text-sm">
-          Example: Enter "SHIP123456789" to track your package
-        </p>
+    <div className="bg-white py-8 border-b">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-lg">
+          <h2 className="text-2xl font-semibold text-gray-800 mb-6">
+            Track your package
+          </h2>
+          <form onSubmit={handleSubmit} className="flex flex-col sm:flex-row gap-4">
+            <div className="flex-1">
+              <input
+                type="text"
+                value={trackingNumber}
+                onChange={(e) => setTrackingNumber(e.target.value)}
+                placeholder="Enter tracking number"
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base"
+              />
+              <p className="text-sm text-gray-500 mt-2">
+                Example: SHIP123456789
+              </p>
+            </div>
+            <button
+              type="submit"
+              className="bg-blue-600 text-white hover:bg-blue-700 px-8 py-3 rounded-lg flex items-center justify-center gap-2 transition-colors text-base font-semibold"
+            >
+              <Search className="h-5 w-5" />
+              Track
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   )

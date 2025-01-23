@@ -1,4 +1,3 @@
-
 import { Toaster } from 'react-hot-toast'
 import Navbar from './components/Navbar'
 import TrackingSearch from './components/TrackingSearch'
@@ -7,54 +6,86 @@ import './index.css'
 
 function App() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-white">
       <Toaster position="top-right" />
       <Navbar />
       <main>
         <TrackingSearch />
         <Features />
         
-        {/* About Section */}
-        <section id="about" className="py-20">
+        {/* Help Section */}
+        <section className="py-12 bg-white">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-900 mb-8">
-                About ShipTrack
-              </h2>
-              <p className="max-w-2xl mx-auto text-gray-600">
-                We are a leading shipping company with over 20 years of experience in logistics and delivery services. 
-                Our commitment to reliability and customer satisfaction has made us the preferred choice for businesses 
-                and individuals worldwide.
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Contact Section */}
-        <section id="contact" className="py-20 bg-gray-50">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-900 mb-8">
-                Contact Us
-              </h2>
-              <p className="max-w-2xl mx-auto text-gray-600 mb-8">
-                Have questions? Our team is here to help.
-              </p>
-              <a
-                href="mailto:contact@shiptrack.com"
-                className="inline-block bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-500 transition-colors"
-              >
-                Get in Touch
-              </a>
+            <h2 className="text-2xl font-semibold text-gray-900 mb-8">
+              Help & Support
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="bg-gray-50 p-6 rounded-lg">
+                <h3 className="text-lg font-semibold mb-2">Contact Support</h3>
+                <p className="text-gray-600 mb-4">
+                  Need help? Our support team is available 24/7 to assist you.
+                </p>
+                <a
+                  href="mailto:support@shiptrack.com"
+                  className="text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  Get in touch →
+                </a>
+              </div>
+              <div className="bg-gray-50 p-6 rounded-lg">
+                <h3 className="text-lg font-semibold mb-2">FAQs</h3>
+                <p className="text-gray-600 mb-4">
+                  Find answers to commonly asked questions about our services.
+                </p>
+                <a
+                  href="#"
+                  className="text-blue-600 hover:text-blue-700 font-medium"
+                >
+                  View FAQs →
+                </a>
+              </div>
             </div>
           </div>
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="bg-gray-800 text-white py-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <p>&copy; 2024 ShipTrack. All rights reserved.</p>
+      <footer className="bg-gray-900 text-white py-12">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div>
+              <h3 className="text-lg font-semibold mb-4">About ShipTrack</h3>
+              <p className="text-gray-400 text-sm">
+                Leading shipping solutions for businesses and individuals worldwide.
+              </p>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
+              <ul className="space-y-2 text-gray-400 text-sm">
+                <li><a href="#" className="hover:text-white">Track Package</a></li>
+                <li><a href="#" className="hover:text-white">Shipping Rates</a></li>
+                <li><a href="#" className="hover:text-white">Locations</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Support</h3>
+              <ul className="space-y-2 text-gray-400 text-sm">
+                <li><a href="#" className="hover:text-white">Help Center</a></li>
+                <li><a href="#" className="hover:text-white">Contact Us</a></li>
+                <li><a href="#" className="hover:text-white">FAQs</a></li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="text-lg font-semibold mb-4">Legal</h3>
+              <ul className="space-y-2 text-gray-400 text-sm">
+                <li><a href="#" className="hover:text-white">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-white">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-white">Shipping Terms</a></li>
+              </ul>
+            </div>
+          </div>
+          <div className="border-t border-gray-800 mt-8 pt-8 text-center text-gray-400 text-sm">
+            <p>&copy; 2024 ShipTrack. All rights reserved.</p>
+          </div>
         </div>
       </footer>
     </div>
