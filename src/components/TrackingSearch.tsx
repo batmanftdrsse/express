@@ -53,7 +53,7 @@ export default function TrackingSearch() {
                     value={trackingNumber}
                     onChange={(e) => setTrackingNumber(e.target.value)}
                     placeholder="Digite o número de rastreio"
-                    className="w-full px-4 py-4 pl-12 border border-gray-300 dark:border-gray-600 rounded-lg 
+                    className="w-full h-[60px] px-4 py-4 pl-12 border border-gray-300 dark:border-gray-600 rounded-lg 
                              bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400
                              placeholder-gray-500 dark:placeholder-gray-400
@@ -68,9 +68,9 @@ export default function TrackingSearch() {
               <button
                 type="submit"
                 className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600
-                         px-8 py-4 rounded-lg flex items-center justify-center gap-2
+                         h-[60px] px-8 rounded-lg flex items-center justify-center gap-2
                          transition-colors duration-200 text-lg font-semibold shadow-sm
-                         hover:shadow-md min-w-[140px]"
+                         hover:shadow-md min-w-[160px] sm:self-start"
               >
                 <Search className="h-5 w-5" />
                 Rastrear
