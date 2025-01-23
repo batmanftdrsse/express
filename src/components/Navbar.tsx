@@ -2,6 +2,13 @@ import { Menu, X, Package } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import DarkModeToggle from './DarkModeToggle'
 
+const navItems = [
+  { href: '#track', label: 'Rastrear' },
+  { href: '#features', label: 'Recursos' },
+  { href: '#about', label: 'Sobre Nós' },
+  { href: '#help', label: 'Ajuda e Suporte' },
+]
+
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
   const menuRef = useRef<HTMLDivElement>(null)
@@ -32,6 +39,20 @@ export default function Navbar() {
     }
   }, [isOpen])
 
+  const handleNavClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    e.preventDefault()
+    const href = e.currentTarget.getAttribute('href')
+    if (!href) return
+
+    const element = document.querySelector(href)
+    if (element) {
+      element.scrollIntoView({
+        behavior: 'smooth'
+      })
+      setIsOpen(false)
+    }
+  }
+
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -44,10 +65,16 @@ export default function Navbar() {
           
           {/* Desktop menu */}
           <div className="hidden md:flex items-center justify-center space-x-8">
-            <a href="#" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 text-sm font-medium">Rastrear</a>
-            <a href="#services" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 text-sm font-medium">Enviar</a>
-            <a href="#about" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 text-sm font-medium">Receber</a>
-            <a href="#contact" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 text-sm font-medium">Ajuda e Suporte</a>
+            {navItems.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                onClick={handleNavClick}
+                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 text-sm font-medium"
+              >
+                {item.label}
+              </a>
+            ))}
           </div>
 
           {/* Right side controls */}
@@ -79,10 +106,16 @@ export default function Navbar() {
         `}
       >
         <div className="pt-2 pb-3 space-y-1 px-4">
-          <a href="#" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800">Rastrear</a>
-          <a href="#services" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800">Enviar</a>
-          <a href="#about" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800">Receber</a>
-          <a href="#contact" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800">Ajuda e Suporte</a>
+          {navItems.map((item) => (
+            <a
+              key={item.href}
+              href={item.href}
+              onClick={handleNavClick}
+              className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-gray-50 dark:hover:bg-gray-800"
+            >
+              {item.label}
+            </a>
+          ))}
         </div>
       </div>
     </nav>

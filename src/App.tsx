@@ -12,13 +12,20 @@ function App() {
       <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors">
         <Toaster position="top-right" />
         <Navbar />
-        <main>
-          <TrackingSearch />
-          <AboutUs />
-          <Features />
+        <main className="pt-16"> {/* Added padding-top to account for fixed navbar */}
+          <section id="track" className="scroll-mt-16">
+            <TrackingSearch />
+          </section>
           
-          {/* Help Section */}
-          <section className="py-12 bg-white dark:bg-gray-900">
+          <section id="about" className="scroll-mt-16">
+            <AboutUs />
+          </section>
+          
+          <section id="features" className="scroll-mt-16">
+            <Features />
+          </section>
+          
+          <section id="help" className="py-12 bg-white dark:bg-gray-900 scroll-mt-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-8">
                 Help & Support
@@ -65,17 +72,17 @@ function App() {
               <div>
                 <h3 className="text-lg font-semibold mb-4">Quick Links</h3>
                 <ul className="space-y-2 text-gray-400 text-sm">
-                  <li><a href="#" className="hover:text-white">Track Package</a></li>
-                  <li><a href="#" className="hover:text-white">Shipping Rates</a></li>
-                  <li><a href="#" className="hover:text-white">Locations</a></li>
+                  <li><a href="#track" className="hover:text-white">Track Package</a></li>
+                  <li><a href="#features" className="hover:text-white">Features</a></li>
+                  <li><a href="#about" className="hover:text-white">About Us</a></li>
                 </ul>
               </div>
               <div>
                 <h3 className="text-lg font-semibold mb-4">Support</h3>
                 <ul className="space-y-2 text-gray-400 text-sm">
-                  <li><a href="#" className="hover:text-white">Help Center</a></li>
-                  <li><a href="#" className="hover:text-white">Contact Us</a></li>
-                  <li><a href="#" className="hover:text-white">FAQs</a></li>
+                  <li><a href="#help" className="hover:text-white">Help Center</a></li>
+                  <li><a href="#help" className="hover:text-white">Contact Us</a></li>
+                  <li><a href="#help" className="hover:text-white">FAQs</a></li>
                 </ul>
               </div>
               <div>
