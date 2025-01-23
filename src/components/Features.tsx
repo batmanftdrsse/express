@@ -3,33 +3,33 @@ import { Truck, Package, Globe, Clock, Mail, Box, Shield, Headphones } from 'luc
 const features = [
   {
     icon: <Package className="h-8 w-8" />,
-    title: 'Package Tracking',
-    description: 'Real-time tracking with detailed shipment updates and notifications'
+    title: 'Rastreamento de Pacotes',
+    description: 'Acompanhamento em tempo real com atualizações detalhadas e notificações'
   },
   {
     icon: <Truck className="h-8 w-8" />,
-    title: 'Express Shipping',
-    description: 'Next-day and same-day delivery options for urgent packages'
+    title: 'Entrega Expressa',
+    description: 'Opções de entrega no dia seguinte e no mesmo dia para pacotes urgentes'
   },
   {
     icon: <Globe className="h-8 w-8" />,
-    title: 'Global Coverage',
-    description: 'International shipping to over 150 countries worldwide'
+    title: 'Cobertura Global',
+    description: 'Envios internacionais para mais de 150 países em todo o mundo'
   },
   {
     icon: <Shield className="h-8 w-8" />,
-    title: 'Secure Shipping',
-    description: 'Package protection and insurance for peace of mind'
+    title: 'Envio Seguro',
+    description: 'Proteção e seguro de pacotes para sua tranquilidade'
   },
   {
     icon: <Headphones className="h-8 w-8" />,
-    title: '24/7 Support',
-    description: 'Round-the-clock customer service and assistance'
+    title: 'Suporte 24/7',
+    description: 'Atendimento ao cliente e assistência 24 horas por dia'
   },
   {
     icon: <Box className="h-8 w-8" />,
-    title: 'Flexible Options',
-    description: 'Multiple shipping speeds and service levels to choose from'
+    title: 'Opções Flexíveis',
+    description: 'Múltiplas velocidades de envio e níveis de serviço para escolher'
   }
 ]
 
@@ -39,10 +39,10 @@ export default function Features() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
-            Why Choose ShipTrack?
+            Por que Escolher a RastreioExpress?
           </h2>
           <p className="text-lg text-gray-600 dark:text-gray-400">
-            Experience world-class shipping services with features designed to make your logistics simple and efficient
+            Experimente serviços de envio de classe mundial com recursos projetados para tornar sua logística simples e eficiente
           </p>
         </div>
 
