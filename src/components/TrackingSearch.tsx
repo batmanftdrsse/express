@@ -18,16 +18,15 @@ export default function TrackingSearch() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (!trackingNumber.trim()) {
-      toast.error('Please enter a tracking number')
+      toast.error('Por favor, insira um número de rastreio')
       return
     }
-    toast.success('Tracking number submitted: ' + trackingNumber)
+    toast.success('Número de rastreio enviado: ' + trackingNumber)
     setTrackingNumber('')
   }
 
   return (
     <div className="relative bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 pt-20 pb-32">
-      {/* Background pattern */}
       <div className="absolute inset-0 opacity-10 dark:opacity-20">
         <div className="absolute inset-0" style={{
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%234A90E2' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
@@ -37,10 +36,10 @@ export default function TrackingSearch() {
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold text-gray-900 dark:text-white mb-6">
-            Track Your Shipment
+            Rastreie sua Encomenda
           </h1>
           <p className="text-lg text-gray-600 dark:text-gray-300 max-w-2xl mx-auto">
-            Enter your tracking number to get real-time updates on your package location
+            Digite seu número de rastreio para obter atualizações em tempo real sobre a localização do seu pacote
           </p>
         </div>
 
@@ -53,7 +52,7 @@ export default function TrackingSearch() {
                     type="text"
                     value={trackingNumber}
                     onChange={(e) => setTrackingNumber(e.target.value)}
-                    placeholder="Enter tracking number"
+                    placeholder="Digite o número de rastreio"
                     className="w-full px-4 py-4 pl-12 border border-gray-300 dark:border-gray-600 rounded-lg 
                              bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400
@@ -63,7 +62,7 @@ export default function TrackingSearch() {
                   <Package className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 </div>
                 <p className="text-sm text-gray-500 dark:text-gray-400 mt-2 ml-2">
-                  Example: SHIP123456789
+                  Exemplo: RASTR123456789
                 </p>
               </div>
               <button
@@ -74,37 +73,36 @@ export default function TrackingSearch() {
                          hover:shadow-md min-w-[140px]"
               >
                 <Search className="h-5 w-5" />
-                Track
+                Rastrear
               </button>
             </form>
 
             <div className="mt-8 grid grid-cols-3 gap-4">
               <QuickAction 
                 icon={Truck}
-                title="Ship Now"
-                description="Create a new shipment"
+                title="Enviar Agora"
+                description="Criar nova remessa"
               />
               <QuickAction 
                 icon={Package}
-                title="Quick Quote"
-                description="Get shipping rates"
+                title="Cotação Rápida"
+                description="Calcular frete"
               />
               <QuickAction 
                 icon={MapPin}
-                title="Find Location"
-                description="Nearest drop-off point"
+                title="Encontrar Local"
+                description="Ponto de coleta mais próximo"
               />
             </div>
           </div>
         </div>
 
-        {/* Trust indicators */}
         <div className="mt-16 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
           {[
-            { number: '10M+', label: 'Packages Delivered' },
-            { number: '150+', label: 'Countries Served' },
-            { number: '99.9%', label: 'On-Time Delivery' },
-            { number: '24/7', label: 'Customer Support' },
+            { number: '10M+', label: 'Entregas Realizadas' },
+            { number: '150+', label: 'Países Atendidos' },
+            { number: '99.9%', label: 'Entregas no Prazo' },
+            { number: '24/7', label: 'Suporte ao Cliente' },
           ].map((stat, index) => (
             <div key={index}>
               <div className="text-3xl font-bold text-blue-600 dark:text-blue-400 mb-2">
