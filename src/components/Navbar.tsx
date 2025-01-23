@@ -79,50 +79,54 @@ export default function Navbar() {
           </div>
         </div>
 
+        {/* Mobile menu overlay */}
+        {isOpen && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 z-40" onClick={() => setIsOpen(false)} />
+        )}
+
         {/* Mobile menu */}
         <div
           ref={menuRef}
           className={`
-            fixed inset-0 top-16 bg-white dark:bg-gray-900 z-40 md:hidden
-            transform transition-transform duration-300 ease-in-out
-            ${isOpen ? 'translate-y-0' : '-translate-y-full'}
+            fixed inset-x-0 top-16 bg-white dark:bg-gray-900 z-40 md:hidden
+            transform transition-all duration-300 ease-in-out
+            ${isOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0'}
+            max-h-[calc(100vh-4rem)] overflow-y-auto
           `}
         >
-          <div className="h-full overflow-y-auto pb-20">
-            <div className="px-4 py-6 space-y-4">
-              <a 
-                href="#" 
-                className="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 
-                         hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
-                onClick={() => setIsOpen(false)}
-              >
-                Rastrear
-              </a>
-              <a 
-                href="#services" 
-                className="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 
-                         hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
-                onClick={() => setIsOpen(false)}
-              >
-                Enviar
-              </a>
-              <a 
-                href="#about" 
-                className="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 
-                         hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
-                onClick={() => setIsOpen(false)}
-              >
-                Receber
-              </a>
-              <a 
-                href="#contact" 
-                className="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 
-                         hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
-                onClick={() => setIsOpen(false)}
-              >
-                Ajuda e Suporte
-              </a>
-            </div>
+          <div className="flex flex-col items-center py-6 space-y-4">
+            <a 
+              href="#" 
+              className="w-full text-center px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 
+                       hover:bg-gray-50 dark:hover:bg-gray-800"
+              onClick={() => setIsOpen(false)}
+            >
+              Rastrear
+            </a>
+            <a 
+              href="#services" 
+              className="w-full text-center px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 
+                       hover:bg-gray-50 dark:hover:bg-gray-800"
+              onClick={() => setIsOpen(false)}
+            >
+              Enviar
+            </a>
+            <a 
+              href="#about" 
+              className="w-full text-center px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 
+                       hover:bg-gray-50 dark:hover:bg-gray-800"
+              onClick={() => setIsOpen(false)}
+            >
+              Receber
+            </a>
+            <a 
+              href="#contact" 
+              className="w-full text-center px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 
+                       hover:bg-gray-50 dark:hover:bg-gray-800"
+              onClick={() => setIsOpen(false)}
+            >
+              Ajuda e Suporte
+            </a>
           </div>
         </div>
       </nav>
