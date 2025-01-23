@@ -1,6 +1,7 @@
 import { Toaster } from 'react-hot-toast'
 import Navbar from './components/Navbar'
 import TrackingSearch from './components/TrackingSearch'
+import AboutUs from './components/AboutUs'
 import Features from './components/Features'
 import './index.css'
 
@@ -11,6 +12,7 @@ function App() {
       <Navbar />
       <main>
         <TrackingSearch />
+        <AboutUs />
         <Features />
         
         {/* Help Section */}
