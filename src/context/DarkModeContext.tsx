@@ -8,9 +8,18 @@ type DarkModeContextType = {
 const DarkModeContext = createContext<DarkModeContextType | undefined>(undefined)
 
 export function DarkModeProvider({ children }: { children: React.ReactNode }) {
-  const [isDarkMode, setIsDarkMode] = useState(true) // Default to dark mode
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    // Check localStorage first
+    const saved = localStorage.getItem('darkMode')
+    if (saved !== null) {
+      return JSON.parse(saved)
+    }
+    // If no localStorage value, check system preference
+    return window.matchMedia('(prefers-color-scheme: dark)').matches
+  })
 
   useEffect(() => {
+    localStorage.setItem('darkMode', JSON.stringify(isDarkMode))
     if (isDarkMode) {
       document.documentElement.classList.add('dark')
     } else {

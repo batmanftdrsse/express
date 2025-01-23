@@ -35,29 +35,27 @@ const features = [
 
 export default function Features() {
   return (
-    <section className="py-12 bg-gray-50">
+    <section className="py-16 bg-gray-50 dark:bg-gray-800 transition-colors">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl font-semibold text-gray-900 mb-8">
+        <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-12 text-center">
           Popular Services
         </h2>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {features.map((feature, index) => (
             <div
               key={index}
-              className="bg-white p-6 rounded-lg hover:shadow-md transition-shadow cursor-pointer border border-gray-100"
+              className="bg-white dark:bg-gray-900 p-8 rounded-xl hover:shadow-lg dark:hover:shadow-2xl transition-all duration-300 transform hover:-translate-y-1 border border-gray-100 dark:border-gray-700"
             >
-              <div className="flex items-start space-x-4">
-                <div className="text-blue-600">
+              <div className="flex flex-col items-center text-center">
+                <div className="text-blue-600 dark:text-blue-400 mb-4">
                   {feature.icon}
                 </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                    {feature.title}
-                  </h3>
-                  <p className="text-gray-600">
-                    {feature.description}
-                  </p>
-                </div>
+                <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
+                  {feature.title}
+                </h3>
+                <p className="text-gray-600 dark:text-gray-400">
+                  {feature.description}
+                </p>
               </div>
             </div>
           ))}
