@@ -7,11 +7,11 @@ export default function DarkModeToggle() {
   return (
     <button
       onClick={toggleDarkMode}
-      className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+      className="inline-flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
       aria-label="Toggle dark mode"
     >
       {isDarkMode ? (
-        <Sun className="h-5 w-5 text-gray-200" />
+        <Sun className="h-5 w-5 text-gray-300" />
       ) : (
         <Moon className="h-5 w-5 text-gray-700" />
       )}
