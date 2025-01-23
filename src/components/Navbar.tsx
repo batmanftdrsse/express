@@ -1,9 +1,10 @@
 import { Menu, X, Package } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import DarkModeToggle from './DarkModeToggle'
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
+  const menuRef = useRef<HTMLDivElement>(null)
 
   // Close mobile menu when resizing to desktop
   useEffect(() => {
@@ -16,15 +17,32 @@ export default function Navbar() {
     return () => window.removeEventListener('resize', handleResize)
   }, [])
 
-  // Prevent scroll when mobile menu is open
+  // Handle clicks outside of menu to close it
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(event.target as Node)) {
+        setIsOpen(false)
+      }
+    }
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside)
+    }
+  }, [isOpen])
+
+  // Lock body scroll when mobile menu is open
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden'
     } else {
-      document.body.style.overflow = 'unset'
+      document.body.style.overflow = ''
     }
     return () => {
-      document.body.style.overflow = 'unset'
+      document.body.style.overflow = ''
     }
   }, [isOpen])
 
@@ -61,24 +79,50 @@ export default function Navbar() {
           </div>
         </div>
 
-        {/* Mobile menu overlay */}
-        <div className={`
-          fixed inset-0 bg-gray-900/50 dark:bg-gray-900/80 backdrop-blur-sm z-40
-          transition-opacity duration-300 md:hidden
-          ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}
-        `} onClick={() => setIsOpen(false)} />
-
-        {/* Mobile menu panel */}
-        <div className={`
-          absolute top-16 left-0 right-0 bg-white dark:bg-gray-900 border-b border-gray-200 
-          dark:border-gray-700 md:hidden transition-transform duration-300 ease-in-out z-40
-          ${isOpen ? 'translate-y-0' : '-translate-y-full'}
-        `}>
-          <div className="px-4 pt-2 pb-3 space-y-1">
-            <a href="#" className="block px-3 py-4 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-base rounded-lg">Rastrear</a>
-            <a href="#services" className="block px-3 py-4 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-base rounded-lg">Enviar</a>
-            <a href="#about" className="block px-3 py-4 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-base rounded-lg">Receber</a>
-            <a href="#contact" className="block px-3 py-4 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800 text-base rounded-lg mb-2">Ajuda e Suporte</a>
+        {/* Mobile menu */}
+        <div
+          ref={menuRef}
+          className={`
+            fixed inset-0 top-16 bg-white dark:bg-gray-900 z-40 md:hidden
+            transform transition-transform duration-300 ease-in-out
+            ${isOpen ? 'translate-y-0' : '-translate-y-full'}
+          `}
+        >
+          <div className="h-full overflow-y-auto pb-20">
+            <div className="px-4 py-6 space-y-4">
+              <a 
+                href="#" 
+                className="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 
+                         hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
+                onClick={() => setIsOpen(false)}
+              >
+                Rastrear
+              </a>
+              <a 
+                href="#services" 
+                className="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 
+                         hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
+                onClick={() => setIsOpen(false)}
+              >
+                Enviar
+              </a>
+              <a 
+                href="#about" 
+                className="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 
+                         hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
+                onClick={() => setIsOpen(false)}
+              >
+                Receber
+              </a>
+              <a 
+                href="#contact" 
+                className="block px-4 py-3 text-base font-medium text-gray-700 dark:text-gray-300 
+                         hover:bg-gray-50 dark:hover:bg-gray-800 rounded-lg"
+                onClick={() => setIsOpen(false)}
+              >
+                Ajuda e Suporte
+              </a>
+            </div>
           </div>
         </div>
       </nav>
