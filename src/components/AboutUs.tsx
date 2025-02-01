@@ -15,8 +15,8 @@ export default function AboutUs() {
           <div className="relative">
             <div className="aspect-w-4 aspect-h-3">
               <img
-                src="https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
-                alt="Operações globais de envio"
+                src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
+                alt="Centro de distribuição moderno com caminhões"
                 className="object-cover w-full h-full rounded-2xl shadow-2xl"
               />
             </div>
