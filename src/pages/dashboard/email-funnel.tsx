@@ -1,56 +1,53 @@
-import { useEffect, useState } from 'react';
-import { MetricCard } from '../../components/MetricCard';
-import { Table, TableHead, TableBody, TableRow, TableHeader, TableCell } from '../../components/Table';
-import { Badge } from '../../components/Badge';
-import { Button } from '../../components/Button';
-import toast from 'react-hot-toast';
+import { useEffect, useState } from 'react'
+import { MetricCard } from '../../components/MetricCard'
+import toast from 'react-hot-toast'
 
 interface FunnelData {
-  totalSequences: number;
-  activeSequences: number;
-  completedSequences: number;
-  stepCounts: any[];
-  sequences: any[];
-  totalEmailsSent: number;
-  successRate: number;
+  totalSequences: number
+  activeSequences: number
+  completedSequences: number
+  stepCounts: any[]
+  sequences: any[]
+  totalEmailsSent: number
+  successRate: number
 }
 
 export default function EmailFunnelPage() {
-  const [funnelData, setFunnelData] = useState<FunnelData | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [funnelData, setFunnelData] = useState<FunnelData | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [loading, setLoading] = useState(true)
 
   const fetchFunnelData = async () => {
     try {
-      const response = await fetch('http://localhost:3001/api/funnel-data');
+      const response = await fetch('http://localhost:3001/api/funnel-data')
       
       if (!response.ok) {
-        throw new Error('Erro ao buscar dados do funil');
+        throw new Error('Erro ao buscar dados do funil')
       }
 
-      const data = await response.json();
-      setFunnelData(data);
-      setError(null);
+      const data = await response.json()
+      setFunnelData(data)
+      setError(null)
     } catch (error) {
-      console.error('Erro ao carregar dados:', error);
-      setError('Erro ao carregar dados do funil');
+      console.error('Erro ao carregar dados:', error)
+      setError('Erro ao carregar dados do funil')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    fetchFunnelData();
-    const interval = setInterval(fetchFunnelData, 30000);
-    return () => clearInterval(interval);
-  }, []);
+    fetchFunnelData()
+    const interval = setInterval(fetchFunnelData, 30000)
+    return () => clearInterval(interval)
+  }, [])
 
   if (loading) {
-    return <div>Carregando...</div>;
+    return <div className="p-6">Carregando...</div>
   }
 
   if (error) {
-    return <div>{error}</div>;
+    return <div className="p-6 text-red-500">{error}</div>
   }
 
   return (
@@ -67,45 +64,43 @@ export default function EmailFunnelPage() {
         <MetricCard title="Taxa de Sucesso" value={`${funnelData?.successRate || 0}%`} />
       </div>
 
-      {/* Tabela de Sequências */}
-      <div className="bg-white dark:bg-gray-900 rounded-lg shadow overflow-hidden">
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableHeader className="dark:text-gray-200">ID</TableHeader>
-              <TableHeader className="dark:text-gray-200">Cliente</TableHeader>
-              <TableHeader className="dark:text-gray-200">Status</TableHeader>
-              <TableHeader className="dark:text-gray-200">Etapa</TableHeader>
-              <TableHeader className="dark:text-gray-200">Ações</TableHeader>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {funnelData?.sequences.map((sequence) => (
-              <TableRow key={sequence.id} className="dark:bg-gray-800">
-                <TableCell className="dark:text-gray-200">{sequence.id}</TableCell>
-                <TableCell className="dark:text-gray-200">{sequence.customer_email}</TableCell>
-                <TableCell>
-                  <Badge variant={sequence.status === 'active' ? 'success' : 'neutral'}>
+      {/* Lista de Sequências */}
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
+        <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+          Sequências Ativas
+        </h2>
+        <div className="space-y-4">
+          {funnelData?.sequences.map((sequence) => (
+            <div 
+              key={sequence.id}
+              className="p-4 border border-gray-200 dark:border-gray-700 rounded-lg"
+            >
+              <div className="flex justify-between items-center">
+                <div>
+                  <p className="font-medium text-gray-900 dark:text-white">
+                    Cliente #{sequence.id}
+                  </p>
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {sequence.customer_email}
+                  </p>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-medium text-gray-900 dark:text-white">
+                    Etapa {sequence.current_step}/6
+                  </p>
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                    sequence.status === 'active' 
+                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                      : 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300'
+                  }`}>
                     {sequence.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="dark:text-gray-200">{sequence.current_step}/6</TableCell>
-                <TableCell>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      toast.success('Função ainda não implementada');
-                    }}
-                  >
-                    Reenviar
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+                  </span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
-  );
+  )
 } 
