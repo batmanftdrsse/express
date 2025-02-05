@@ -4,11 +4,9 @@ import DarkModeToggle from './DarkModeToggle'
 import { useNavigate } from 'react-router-dom'
 
 const navItems = [
-  { href: '/', label: 'Home' },
-  { href: '/dashboard/email-funnel', label: 'Dashboard' },
   { href: '#track', label: 'Rastrear' },
-  { href: '#features', label: 'Recursos' },
   { href: '#about', label: 'Sobre Nós' },
+  { href: '#features', label: 'Recursos' },
   { href: '#help', label: 'Ajuda' },
 ]
 
