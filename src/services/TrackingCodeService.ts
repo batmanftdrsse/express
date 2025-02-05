@@ -1,52 +1,40 @@
+import { PrismaClient } from '@prisma/client'
+import { customAlphabet } from 'nanoid'
+
+const prisma = new PrismaClient()
+
 export class TrackingCodeService {
-  private async generateUniqueCode(): Promise<string> {
-    const prefix = 'PC';
-    const suffix = 'BR';
-    
-    while (true) {
-      // Gera 9 dígitos aleatórios
-      const numbers = Math.random().toString().slice(2, 11);
-      const code = `${prefix}${numbers}${suffix}`;
-      
-      // Verifica se já existe
-      const exists = await prisma.trackingCodes.findUnique({
-        where: { code }
-      });
-      
-      if (!exists) {
-        // Cria novo registro
-        await prisma.trackingCodes.create({
-          data: { 
-            code,
-            status: 'available'
-          }
-        });
-        return code;
-      }
-    }
+  private generateCode(): string {
+    const numbers = customAlphabet('0123456789', 9)
+    return `SL${numbers()}BR`
   }
 
-  public async allocateTrackingCode(emailSequenceId: number): Promise<string> {
-    // Procura um código disponível
-    const trackingCode = await prisma.trackingCodes.findFirst({
-      where: { status: 'available' }
-    });
+  async createTrackingCode(transactionId: string): Promise<string> {
+    let attempts = 0
+    const maxAttempts = 5
 
-    if (!trackingCode) {
-      // Se não encontrar, gera um novo
-      return this.generateUniqueCode();
+    while (attempts < maxAttempts) {
+      const code = this.generateCode()
+      
+      try {
+        await prisma.order.create({
+          data: {
+            trackingCode: code,
+            externalId: transactionId,
+            status: 'PENDING'
+          }
+        })
+        
+        return code
+      } catch (error) {
+        if (error.code === 'P2002') { // Unique constraint error
+          attempts++
+          continue
+        }
+        throw error
+      }
     }
 
-    // Atualiza o código como usado
-    await prisma.trackingCodes.update({
-      where: { id: trackingCode.id },
-      data: {
-        status: 'used',
-        used_at: new Date(),
-        email_sequence_id: emailSequenceId
-      }
-    });
-
-    return trackingCode.code;
+    throw new Error('Não foi possível gerar um código único após várias tentativas')
   }
 } 

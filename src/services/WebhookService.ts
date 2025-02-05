@@ -1,6 +1,10 @@
 import { PrismaClient } from '@prisma/client';
+import { TrackingCodeService } from './TrackingCodeService';
+import { EmailSequenceService } from './EmailSequenceService';
 
 const prisma = new PrismaClient();
+const trackingService = new TrackingCodeService();
+const emailService = new EmailSequenceService();
 
 interface WebhookPayload {
   id: number;
@@ -177,6 +181,48 @@ export class WebhookService {
       return true;
     } catch (error) {
       console.error('Erro ao processar pagamento:', error);
+      throw error;
+    }
+  }
+
+  async handleTransaction(payload: any) {
+    const { id: transactionId, customer, status } = payload;
+
+    if (status !== 'paid') {
+      return { success: false, message: 'Transação não aprovada' };
+    }
+
+    try {
+      // Gera código de rastreio
+      const trackingCode = await trackingService.createTrackingCode(transactionId);
+
+      // Cria ou atualiza pedido
+      const order = await prisma.order.upsert({
+        where: { externalId: transactionId },
+        update: {
+          status: 'DISPATCHED',
+          customerName: customer.name,
+          customerEmail: customer.email
+        },
+        create: {
+          externalId: transactionId,
+          trackingCode,
+          customerName: customer.name,
+          customerEmail: customer.email,
+          status: 'DISPATCHED'
+        }
+      });
+
+      // Inicia sequência de emails
+      await emailService.startSequence(order);
+
+      return { 
+        success: true, 
+        trackingCode,
+        orderId: order.id 
+      };
+    } catch (error) {
+      console.error('Erro ao processar webhook:', error);
       throw error;
     }
   }

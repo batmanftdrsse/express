@@ -1,9 +1,9 @@
 import express from 'express';
 import cors from 'cors';
-import { PrismaClient } from '@prisma/client';
+import dashboardRoutes from './routes/dashboard';
+import prisma from './lib/prisma';
 
 const app = express();
-const prisma = new PrismaClient();
 
 // Log de conexão com o banco
 prisma.$connect()
@@ -31,6 +31,9 @@ app.use((req, res, next) => {
   console.log(`${req.method} ${req.url}`, req.body);
   next();
 });
+
+// Registra as rotas do dashboard
+app.use('/api', dashboardRoutes);
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });

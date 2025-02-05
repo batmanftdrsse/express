@@ -3,9 +3,9 @@ import { EmailSequenceService } from '../services/EmailSequenceService';
 
 const emailService = new EmailSequenceService();
 
-// Executa todos os dias às 10:00
+// Executa a cada hora
 export const startEmailSequenceCron = () => {
-  cron.schedule('0 10 * * *', async () => {
+  cron.schedule('0 * * * *', async () => {
     console.log('Processando sequência de emails...');
     try {
       await emailService.processScheduledEmails();

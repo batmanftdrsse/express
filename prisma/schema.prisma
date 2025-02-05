@@ -18,40 +18,77 @@ model User {
   @@map("users")
 }
 
-model EmailSequences {
-  id               Int        @id @default(autoincrement())
-  customer_id      Int
-  order_id         Int
-  tracking_code    String?    @unique
-  customer_name    String
-  customer_email   String
-  current_step     Int        @default(1)
-  started_at       DateTime   @default(now())
-  completed_at     DateTime?
-  status          String     @default("active")
-  last_email_sent_at DateTime?
-  amount          Int?
-  payment_method  String?
-  paid_at        DateTime?
-  shipping_address Json?
-  transaction_id  String?
-  email_logs      EmailLogs[]
-
-  @@unique([customer_id, order_id])
-  @@map("email_sequences")
+model Order {
+  id              Int           @id @default(autoincrement())
+  trackingCode    String       @unique
+  externalId      String       @unique // ID da transação do gateway
+  customerName    String
+  customerEmail   String
+  status         OrderStatus   @default(PENDING)
+  currentStep     Int          @default(1)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  emailSequence   EmailSequence?
+  trackingUpdates TrackingUpdate[]
 }
 
-model EmailLogs {
-  id             Int           @id @default(autoincrement())
-  sequence_id    Int
-  step           Int
-  email_type     String
-  sent_at        DateTime      @default(now())
-  status         String        @default("pending")
-  customer_email String
-  sequence       EmailSequences @relation(fields: [sequence_id], references: [id])
+model EmailSequence {
+  id              Int           @id @default(autoincrement())
+  orderId         Int           @unique
+  order           Order         @relation(fields: [orderId], references: [id])
+  status          SequenceStatus @default(ACTIVE)
+  lastEmailSentAt DateTime?
+  emailLogs       EmailLog[]
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+}
 
-  @@map("email_logs")
+model EmailLog {
+  id              Int           @id @default(autoincrement())
+  sequenceId      Int
+  sequence        EmailSequence @relation(fields: [sequenceId], references: [id])
+  emailType       EmailType
+  status          EmailStatus   @default(PENDING)
+  sentAt          DateTime?
+  error           String?
+  createdAt       DateTime      @default(now())
+}
+
+model TrackingUpdate {
+  id              Int           @id @default(autoincrement())
+  orderId         Int
+  order           Order         @relation(fields: [orderId], references: [id])
+  status          String
+  location        String?
+  description     String
+  createdAt       DateTime      @default(now())
+}
+
+enum OrderStatus {
+  PENDING
+  DISPATCHED
+  IN_TRANSIT
+  CUSTOMS
+  DELIVERED
+  CANCELLED
+}
+
+enum SequenceStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+enum EmailType {
+  PURCHASE_CONFIRMATION
+  TRANSIT_UPDATE
+  CUSTOMS_NOTIFICATION
+}
+
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
 }
 
 model FunnelTemplate {

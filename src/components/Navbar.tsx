@@ -1,7 +1,7 @@
 import { Menu, X, Package } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import DarkModeToggle from './DarkModeToggle'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, useLocation } from 'react-router-dom'
 
 const navItems = [
   { href: '#track', label: 'Rastrear' },
@@ -15,6 +15,10 @@ export default function Navbar() {
   const menuRef = useRef<HTMLButtonElement>(null)
   const mobileMenuRef = useRef<HTMLDivElement>(null)
   const navigate = useNavigate()
+  const location = useLocation()
+
+  // Verifica se está na área administrativa
+  const isAdminArea = location.pathname.startsWith('/dashboard')
 
   // Close menu on window resize
   useEffect(() => {
@@ -92,77 +96,82 @@ export default function Navbar() {
             <span className="ml-2 text-xl font-bold text-gray-900 dark:text-white">RastreioExpress</span>
           </div>
           
-          {/* Desktop menu */}
-          <div className="hidden md:flex items-center justify-center space-x-8">
-            {navItems.map((item) => (
-              <a
-                key={item.href}
-                href={item.href}
-                onClick={handleNavClick}
-                className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 
-                         text-sm font-medium transition-colors duration-200"
-              >
-                {item.label}
-              </a>
-            ))}
-          </div>
+          {/* Menu apenas se não estiver na área administrativa */}
+          {!isAdminArea && (
+            <div className="hidden md:flex items-center justify-center space-x-8">
+              {navItems.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={handleNavClick}
+                  className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 
+                           text-sm font-medium transition-colors duration-200"
+                >
+                  {item.label}
+                </a>
+              ))}
+            </div>
+          )}
 
           {/* Right side controls */}
           <div className="flex items-center space-x-4">
             <DarkModeToggle />
-            {/* Mobile menu button */}
-            <button
-              ref={menuRef}
-              onClick={() => setIsOpen(!isOpen)}
-              className="md:hidden inline-flex items-center justify-center p-2 rounded-md 
-                       text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400
-                       focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
-              aria-expanded={isOpen}
-              aria-controls="mobile-menu"
-              aria-label="Main menu"
-            >
-              <span className="sr-only">{isOpen ? 'Close menu' : 'Open menu'}</span>
-              {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
+            {/* Mobile menu button apenas se não estiver na área administrativa */}
+            {!isAdminArea && (
+              <button
+                ref={menuRef}
+                onClick={() => setIsOpen(!isOpen)}
+                className="md:hidden inline-flex items-center justify-center p-2 rounded-md 
+                         text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400
+                         focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                aria-expanded={isOpen}
+                aria-controls="mobile-menu"
+                aria-label="Main menu"
+              >
+                <span className="sr-only">{isOpen ? 'Close menu' : 'Open menu'}</span>
+                {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </button>
+            )}
           </div>
         </div>
       </div>
 
-      {/* Mobile menu overlay */}
-      {isOpen && (
+      {/* Mobile menu overlay e panel apenas se não estiver na área administrativa */}
+      {!isAdminArea && isOpen && (
         <div 
           className="fixed inset-0 bg-black bg-opacity-25 md:hidden transition-opacity"
           aria-hidden="true"
         />
       )}
       
-      {/* Mobile menu panel */}
-      <div
-        ref={mobileMenuRef}
-        id="mobile-menu"
-        className={`
-          absolute top-16 inset-x-0 md:hidden bg-white dark:bg-gray-900 
-          transform transition-all duration-300 ease-in-out
-          ${isOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}
-          shadow-lg border-b border-gray-200 dark:border-gray-700
-        `}
-        aria-label="Mobile menu"
-      >
-        <div className="pt-2 pb-3 space-y-1 px-4">
-          {navItems.map((item) => (
-            <a
-              key={item.href}
-              href={item.href}
-              onClick={handleNavClick}
-              className="block px-3 py-2 rounded-md text-base font-medium 
-                       text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 
-                       hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
-            >
-              {item.label}
-            </a>
-          ))}
+      {!isAdminArea && (
+        <div
+          ref={mobileMenuRef}
+          id="mobile-menu"
+          className={`
+            absolute top-16 inset-x-0 md:hidden bg-white dark:bg-gray-900 
+            transform transition-all duration-300 ease-in-out
+            ${isOpen ? 'translate-y-0 opacity-100' : '-translate-y-full opacity-0 pointer-events-none'}
+            shadow-lg border-b border-gray-200 dark:border-gray-700
+          `}
+          aria-label="Mobile menu"
+        >
+          <div className="pt-2 pb-3 space-y-1 px-4">
+            {navItems.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                onClick={handleNavClick}
+                className="block px-3 py-2 rounded-md text-base font-medium 
+                         text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 
+                         hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors duration-200"
+              >
+                {item.label}
+              </a>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
     </nav>
   )
 }
