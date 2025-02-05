@@ -1,5 +1,5 @@
-import { Sun, Moon } from 'lucide-react'
-import { useDarkMode } from '../context/DarkModeContext'
+import { Moon, Sun } from 'lucide-react'
+import { useDarkMode } from '../contexts/DarkModeContext'
 
 export default function DarkModeToggle() {
   const { isDarkMode, toggleDarkMode } = useDarkMode()
@@ -7,13 +7,13 @@ export default function DarkModeToggle() {
   return (
     <button
       onClick={toggleDarkMode}
-      className="inline-flex items-center justify-center p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-      aria-label="Toggle dark mode"
+      className="p-2 rounded-md text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+      aria-label={isDarkMode ? 'Ativar modo claro' : 'Ativar modo escuro'}
     >
       {isDarkMode ? (
-        <Sun className="h-5 w-5 text-gray-300" />
+        <Sun className="h-5 w-5" />
       ) : (
-        <Moon className="h-5 w-5 text-gray-700" />
+        <Moon className="h-5 w-5" />
       )}
     </button>
   )

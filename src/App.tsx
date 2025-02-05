@@ -1,25 +1,36 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import { Toaster } from 'react-hot-toast'
-import Navbar from './components/Navbar'
+import { Routes, Route } from 'react-router-dom'
+import LoginPage from './pages/LoginPage'
 import HomePage from './pages/HomePage'
-import TrackingDetails from './pages/TrackingDetails'
-import { DarkModeProvider } from './context/DarkModeContext'
-import './index.css'
+import EmailFunnelPage from './pages/dashboard/email-funnel'
+import PrivateRoute from './components/PrivateRoute'
+import Navbar from './components/Navbar'
 
 function App() {
+  // Verifica se está na página de login
+  const isLoginPage = window.location.pathname === '/login'
+
   return (
-    <DarkModeProvider>
-      <Router>
-        <div className="min-h-screen bg-white dark:bg-gray-900 transition-colors">
-          <Toaster position="top-right" />
-          <Navbar />
-          <Routes>
-            <Route path="/" element={<HomePage />} />
-            <Route path="/tracking/:trackingNumber" element={<TrackingDetails />} />
-          </Routes>
-        </div>
-      </Router>
-    </DarkModeProvider>
+    <div className="min-h-screen bg-white dark:bg-gray-900">
+      {/* Só mostra a Navbar se não estiver na página de login */}
+      {!isLoginPage && <Navbar />}
+      
+      <div className={isLoginPage ? '' : 'pt-16'}>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/login" element={<LoginPage />} />
+          <Route
+            path="/dashboard/email-funnel"
+            element={
+              <PrivateRoute>
+                <div className="bg-gray-50 dark:bg-gray-800 min-h-screen">
+                  <EmailFunnelPage />
+                </div>
+              </PrivateRoute>
+            }
+          />
+        </Routes>
+      </div>
+    </div>
   )
 }
 

@@ -1,18 +1,22 @@
 import { Menu, X, Package } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import DarkModeToggle from './DarkModeToggle'
+import { useNavigate } from 'react-router-dom'
 
 const navItems = [
+  { href: '/', label: 'Home' },
+  { href: '/dashboard/email-funnel', label: 'Dashboard' },
   { href: '#track', label: 'Rastrear' },
   { href: '#features', label: 'Recursos' },
   { href: '#about', label: 'Sobre Nós' },
-  { href: '#help', label: 'Ajuda e Suporte' },
+  { href: '#help', label: 'Ajuda' },
 ]
 
 export default function Navbar() {
   const [isOpen, setIsOpen] = useState(false)
-  const menuRef = useRef<HTMLDivElement>(null)
+  const menuRef = useRef<HTMLButtonElement>(null)
   const mobileMenuRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
 
   // Close menu on window resize
   useEffect(() => {
@@ -59,18 +63,24 @@ export default function Navbar() {
     const href = e.currentTarget.getAttribute('href')
     if (!href) return
 
-    setIsOpen(false) // Close menu when clicking a link
+    setIsOpen(false) // Fecha o menu móvel
 
-    const element = document.querySelector(href)
-    if (element) {
-      const navHeight = 64 // height of navbar in pixels
-      const elementPosition = element.getBoundingClientRect().top
-      const offsetPosition = elementPosition + window.pageYOffset - navHeight
+    if (href.startsWith('#')) {
+      // Se for uma âncora, faz o scroll
+      const element = document.querySelector(href)
+      if (element) {
+        const navHeight = 64 // height of navbar in pixels
+        const elementPosition = element.getBoundingClientRect().top
+        const offsetPosition = elementPosition + window.pageYOffset - navHeight
 
-      window.scrollTo({
-        top: offsetPosition,
-        behavior: 'smooth'
-      })
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        })
+      }
+    } else {
+      // Se for uma rota, navega para ela
+      navigate(href)
     }
   }
 

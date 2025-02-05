@@ -1,0 +1,81 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  role         String   @default("user")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model EmailSequences {
+  id               Int        @id @default(autoincrement())
+  customer_id      Int
+  order_id         Int
+  tracking_code    String?    @unique
+  customer_name    String
+  customer_email   String
+  current_step     Int        @default(1)
+  started_at       DateTime   @default(now())
+  completed_at     DateTime?
+  status          String     @default("active")
+  last_email_sent_at DateTime?
+  amount          Int?
+  payment_method  String?
+  paid_at        DateTime?
+  shipping_address Json?
+  transaction_id  String?
+  email_logs      EmailLogs[]
+
+  @@unique([customer_id, order_id])
+  @@map("email_sequences")
+}
+
+model EmailLogs {
+  id             Int           @id @default(autoincrement())
+  sequence_id    Int
+  step           Int
+  email_type     String
+  sent_at        DateTime      @default(now())
+  status         String        @default("pending")
+  customer_email String
+  sequence       EmailSequences @relation(fields: [sequence_id], references: [id])
+
+  @@map("email_logs")
+}
+
+model FunnelTemplate {
+  id             Int          @id @default(autoincrement())
+  name           String
+  payment_method String?
+  is_active      Boolean      @default(true)
+  created_at     DateTime     @default(now())
+  updated_at     DateTime     @updatedAt
+  steps          FunnelStep[]
+
+  @@map("funnel_templates")
+}
+
+model FunnelStep {
+  id                Int            @id @default(autoincrement())
+  funnel_template   FunnelTemplate @relation(fields: [funnel_template_id], references: [id])
+  funnel_template_id Int
+  step_number      Int
+  email_subject    String
+  email_template   String
+  delay_hours      Int
+  created_at       DateTime       @default(now())
+  updated_at       DateTime       @updatedAt
+
+  @@map("funnel_steps")
+} 
