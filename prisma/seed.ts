@@ -12,6 +12,7 @@ async function main() {
   try {
     console.log('Starting seed...')
     
+    // Criar usuário admin
     const hashedPassword = await bcrypt.hash('admin123', 10)
     console.log('Password hashed')
     
@@ -25,42 +26,61 @@ async function main() {
       },
     })
 
-    console.log('Created user:', user)
+    console.log('Created/Updated user:', user)
 
-    // Criar sequências de teste
-    for (let i = 1; i <= 5; i++) {
-      const sequence = await prisma.emailSequences.create({
-        data: {
-          customer_id: i,
-          order_id: i,
-          customer_email: `customer${i}@example.com`,
-          customer_name: `Customer ${i}`,
-          current_step: Math.floor(Math.random() * 3) + 1,
-          status: i % 2 === 0 ? 'active' : 'completed',
-          last_email_sent_at: new Date(),
-        },
-      })
+    // Criar pedido de exemplo
+    const order = await prisma.order.create({
+      data: {
+        trackingCode: 'RAE000123',
+        externalId: 'EXT123',
+        customerName: 'João Silva',
+        customerEmail: 'joao@exemplo.com',
+        status: 'IN_TRANSIT',
+        currentStep: 2,
+        trackingUpdates: {
+          create: [
+            {
+              status: 'PENDING',
+              description: 'Pedido registrado',
+              location: 'São Paulo, SP'
+            },
+            {
+              status: 'IN_TRANSIT',
+              description: 'Em trânsito para o destino',
+              location: 'Rio de Janeiro, RJ'
+            }
+          ]
+        }
+      }
+    })
 
-      // Criar logs de email para cada sequência
-      await prisma.emailLogs.createMany({
-        data: [
-          {
-            sequence_id: sequence.id,
-            step: 1,
-            email_type: 'welcome',
-            status: 'sent',
-            customer_email: sequence.customer_email,
-          },
-          {
-            sequence_id: sequence.id,
-            step: 2,
-            email_type: 'follow_up',
-            status: i % 2 === 0 ? 'pending' : 'sent',
-            customer_email: sequence.customer_email,
-          },
-        ],
+    // Criar sequência de email para o pedido
+    await prisma.emailSequence.create({
+      data: {
+        orderId: order.id,
+        status: 'ACTIVE',
+        emailLogs: {
+          create: [
+            {
+              email: order.customerEmail,
+              type: 'ORDER_CONFIRMATION',
+              status: 'SENT',
+              metadata: {
+                orderNumber: order.trackingCode
+              }
+            }
+          ]
+        }
+      }
+    })
+
+    console.log('Pedido de exemplo criado:', {
+      ...order,
+      emailSequence: await prisma.emailSequence.findUnique({
+        where: { orderId: order.id },
+        include: { emailLogs: true }
       })
-    }
+    })
 
     console.log('Seed completed successfully')
   } catch (error) {

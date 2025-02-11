@@ -2,6 +2,9 @@ import express from 'express';
 import cors from 'cors';
 import dashboardRoutes from './routes/dashboard';
 import prisma from './lib/prisma';
+import emailRoutes from './routes/email'
+import webhookRoutes from './routes/webhook'
+import bcrypt from 'bcrypt';
 
 const app = express();
 
@@ -34,6 +37,8 @@ app.use((req, res, next) => {
 
 // Registra as rotas do dashboard
 app.use('/api', dashboardRoutes);
+app.use('/api', emailRoutes)
+app.use('/api', webhookRoutes)
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
@@ -42,8 +47,9 @@ app.get('/health', (req, res) => {
 // Rota de login
 app.post('/auth/login', async (req, res) => {
   try {
+    console.log('Recebido request de login:', req.body);
     const { email, password } = req.body;
-    console.log('Login attempt:', { email, password });
+    console.log('Login attempt:', { email });
 
     if (!email || !password) {
       return res.status(400).json({ error: 'Email e senha são obrigatórios' });
@@ -52,32 +58,32 @@ app.post('/auth/login', async (req, res) => {
     const user = await prisma.user.findUnique({
       where: { email }
     });
+    console.log('Usuário encontrado:', user);
 
     if (!user) {
+      console.log('Usuário não encontrado:', email);
       return res.status(401).json({ error: 'Usuário não encontrado' });
     }
 
-    // Temporariamente usando senha direta para teste
-    const validPassword = password === 'admin123';
+    // Comparar a senha usando bcrypt
+    const validPassword = await bcrypt.compare(password, user.passwordHash);
     
     if (!validPassword) {
+      console.log('Senha incorreta para usuário:', email);
       return res.status(401).json({ error: 'Senha incorreta' });
     }
 
-    const token = Buffer.from(`${user.id}:${user.email}`).toString('base64');
-    console.log('Login successful:', { email });
-
-    return res.status(200).json({ 
-      token,
-      user: {
-        id: user.id,
-        email: user.email,
-        role: user.role
-      }
+    // Login bem sucedido
+    console.log('Login bem sucedido:', email);
+    res.json({
+      id: user.id,
+      email: user.email,
+      role: user.role
     });
+
   } catch (error) {
-    console.error('Login error:', error);
-    return res.status(500).json({ error: 'Erro interno do servidor' });
+    console.error('Erro detalhado:', error);
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
 

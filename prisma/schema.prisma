@@ -21,7 +21,7 @@ model User {
 model Order {
   id              Int           @id @default(autoincrement())
   trackingCode    String       @unique
-  externalId      String       @unique // ID da transação do gateway
+  externalId      String       @unique
   customerName    String
   customerEmail   String
   status         OrderStatus   @default(PENDING)
@@ -44,14 +44,16 @@ model EmailSequence {
 }
 
 model EmailLog {
-  id              Int           @id @default(autoincrement())
-  sequenceId      Int
-  sequence        EmailSequence @relation(fields: [sequenceId], references: [id])
-  emailType       EmailType
-  status          EmailStatus   @default(PENDING)
-  sentAt          DateTime?
-  error           String?
-  createdAt       DateTime      @default(now())
+  id          String        @id @default(cuid())
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  email       String
+  status      EmailStatus   @default(PENDING)
+  type        EmailType
+  metadata    Json?
+  webhookData Json?
+  sequence    EmailSequence? @relation(fields: [sequenceId], references: [id])
+  sequenceId  Int?
 }
 
 model TrackingUpdate {
@@ -80,14 +82,19 @@ enum SequenceStatus {
 }
 
 enum EmailType {
-  PURCHASE_CONFIRMATION
-  TRANSIT_UPDATE
-  CUSTOMS_NOTIFICATION
+  WELCOME
+  ORDER_CONFIRMATION
+  ABANDONED_CART
+  RECOVERY
 }
 
 enum EmailStatus {
   PENDING
   SENT
+  DELIVERED
+  OPENED
+  CLICKED
+  BOUNCED
   FAILED
 }
 

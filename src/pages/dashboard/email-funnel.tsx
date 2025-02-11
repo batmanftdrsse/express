@@ -16,6 +16,13 @@ export default function EmailFunnelPage() {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [emailMetrics, setEmailMetrics] = useState({
+    total: 0,
+    delivered: 0,
+    opened: 0,
+    clicked: 0,
+    failed: 0
+  })
 
   useEffect(() => {
     async function fetchData() {
@@ -33,6 +40,16 @@ export default function EmailFunnelPage() {
     }
 
     fetchData()
+  }, [dateRange])
+
+  useEffect(() => {
+    async function fetchEmailMetrics() {
+      const response = await fetch('/api/email/metrics')
+      const data = await response.json()
+      setEmailMetrics(data)
+    }
+
+    fetchEmailMetrics()
   }, [dateRange])
 
   if (loading) {
@@ -251,6 +268,28 @@ export default function EmailFunnelPage() {
             <span className="text-xl font-bold text-green-600 dark:text-green-500">
               {formatCurrency(385241.65)}
             </span>
+          </div>
+        </div>
+
+        {/* Métricas de Email */}
+        <div className="mt-8 bg-white dark:bg-[#12141A] shadow-sm dark:border-[#1F2937]/20 rounded-lg p-6">
+          <h2 className="text-lg font-semibold mb-4 text-gray-900 dark:text-white">
+            Métricas de Email
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Total Enviados</p>
+              <p className="text-2xl font-bold text-gray-900 dark:text-white">
+                {emailMetrics.total}
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-600 dark:text-gray-400">Taxa de Entrega</p>
+              <p className="text-2xl font-bold text-green-600">
+                {((emailMetrics.delivered / emailMetrics.total) * 100).toFixed(1)}%
+              </p>
+            </div>
+            {/* ... outras métricas ... */}
           </div>
         </div>
       </div>

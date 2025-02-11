@@ -9,6 +9,41 @@ export class TrackingCodeService {
     return `SL${numbers()}BR`
   }
 
+  async getTrackingInfo(code: string) {
+    try {
+      const order = await prisma.order.findUnique({
+        where: { trackingCode: code },
+        include: {
+          trackingUpdates: {
+            orderBy: { createdAt: 'desc' }
+          },
+          emailSequence: {
+            include: {
+              emailLogs: true
+            }
+          }
+        }
+      })
+
+      if (!order) {
+        throw new Error('Pedido não encontrado')
+      }
+
+      return {
+        trackingCode: order.trackingCode,
+        status: order.status,
+        customerName: order.customerName,
+        currentStep: order.currentStep,
+        updates: order.trackingUpdates,
+        sequence: order.emailSequence,
+        createdAt: order.createdAt
+      }
+    } catch (error) {
+      console.error('Erro ao buscar informações de rastreio:', error)
+      throw error
+    }
+  }
+
   async createTrackingCode(transactionId: string): Promise<string> {
     let attempts = 0
     const maxAttempts = 5
