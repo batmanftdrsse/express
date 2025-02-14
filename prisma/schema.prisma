@@ -18,24 +18,106 @@ model User {
   @@map("users")
 }
 
+model Customer {
+  id        Int      @id @default(autoincrement())
+  name      String
+  email     String
+  phone     String?
+  document  Document?
+  address   Address?
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("customers")
+}
+
+model Document {
+  id         Int      @id @default(autoincrement())
+  number     String
+  type       String
+  customer   Customer @relation(fields: [customerId], references: [id])
+  customerId Int      @unique
+
+  @@map("documents")
+}
+
+model Address {
+  id           Int      @id @default(autoincrement())
+  street       String
+  streetNumber String
+  complement   String?
+  zipCode      String
+  neighborhood String
+  city         String
+  state        String
+  country      String   @default("BR")
+  customer     Customer @relation(fields: [customerId], references: [id])
+  customerId   Int      @unique
+
+  @@map("addresses")
+}
+
+model Transaction {
+  id           Int      @id @default(autoincrement())
+  amount       Int
+  paymentMethod String
+  status       String
+  installments Int      @default(1)
+  paidAt       DateTime?
+  order        Order?
+  card         Card?
+  items        Item[]
+
+  @@map("transactions")
+}
+
+model Card {
+  id              Int         @id @default(autoincrement())
+  brand           String
+  lastDigits      String
+  holderName      String
+  expirationMonth Int
+  expirationYear  Int
+  transaction     Transaction @relation(fields: [transactionId], references: [id])
+  transactionId   Int        @unique
+
+  @@map("cards")
+}
+
+model Item {
+  id            Int         @id @default(autoincrement())
+  title         String
+  quantity      Int
+  unitPrice     Int
+  transaction   Transaction @relation(fields: [transactionId], references: [id])
+  transactionId Int
+
+  @@map("items")
+}
+
 model Order {
   id              Int           @id @default(autoincrement())
   trackingCode    String       @unique
   externalId      String       @unique
   customerName    String
   customerEmail   String
-  status         OrderStatus   @default(PENDING)
-  currentStep     Int          @default(1)
+  status          String
+  currentStep     Int
   createdAt       DateTime     @default(now())
   updatedAt       DateTime     @updatedAt
-  emailSequence   EmailSequence?
   trackingUpdates TrackingUpdate[]
+  customer        Customer     @relation(fields: [customerId], references: [id])
+  customerId      Int
+  transaction     Transaction? @relation(fields: [transactionId], references: [id])
+  transactionId   Int?        @unique
+
+  @@map("orders")
 }
 
 model EmailSequence {
   id              Int           @id @default(autoincrement())
   orderId         Int           @unique
-  order           Order         @relation(fields: [orderId], references: [id])
   status          SequenceStatus @default(ACTIVE)
   lastEmailSentAt DateTime?
   emailLogs       EmailLog[]
