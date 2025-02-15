@@ -1,4 +1,5 @@
-import { PrismaClient, Order, EmailType } from '@prisma/client'
+import { PrismaClient, Prisma } from '@prisma/client'
+import type { Order, EmailType } from '@prisma/client'
 import { MailerService } from './MailerService'
 
 const prisma = new PrismaClient()

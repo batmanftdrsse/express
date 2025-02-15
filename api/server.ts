@@ -5,6 +5,7 @@ import prisma from './lib/prisma';
 import emailRoutes from './routes/email'
 import webhookRoutes from './routes/webhook'
 import bcrypt from 'bcrypt';
+import trackingRoutes from './routes/tracking';
 
 const app = express();
 
@@ -39,6 +40,7 @@ app.use((req, res, next) => {
 app.use('/api', dashboardRoutes);
 app.use('/api', emailRoutes)
 app.use('/api', webhookRoutes)
+app.use('/api', trackingRoutes)
 
 app.get('/health', (req, res) => {
   res.json({ status: 'ok' });

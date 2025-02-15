@@ -1,7 +1,8 @@
 import { PrismaClient } from '@prisma/client'
 import { customAlphabet } from 'nanoid'
+import prisma from '../lib/prisma'
 
-const prisma = new PrismaClient()
+const prismaClient = new PrismaClient()
 
 export class TrackingCodeService {
   private generateCode(): string {
@@ -10,37 +11,56 @@ export class TrackingCodeService {
   }
 
   async getTrackingInfo(code: string) {
-    try {
-      const order = await prisma.order.findUnique({
-        where: { trackingCode: code },
-        include: {
-          trackingUpdates: {
-            orderBy: { createdAt: 'desc' }
-          },
-          emailSequence: {
-            include: {
-              emailLogs: true
-            }
+    const order = await prisma.order.findUnique({
+      where: { trackingCode: code },
+      include: {
+        trackingUpdates: true,
+        customer: {
+          include: {
+            document: true,
+            address: true
+          }
+        },
+        transaction: {
+          include: {
+            card: true,
+            items: true
           }
         }
-      })
-
-      if (!order) {
-        throw new Error('Pedido não encontrado')
       }
+    })
 
-      return {
-        trackingCode: order.trackingCode,
-        status: order.status,
-        customerName: order.customerName,
-        currentStep: order.currentStep,
-        updates: order.trackingUpdates,
-        sequence: order.emailSequence,
-        createdAt: order.createdAt
-      }
-    } catch (error) {
-      console.error('Erro ao buscar informações de rastreio:', error)
-      throw error
+    if (!order) {
+      throw new Error('Pedido não encontrado')
+    }
+
+    return {
+      trackingCode: order.trackingCode,
+      status: order.status,
+      currentStep: order.currentStep,
+      createdAt: order.createdAt,
+      updates: order.trackingUpdates.map(update => ({
+        status: update.status,
+        description: update.description,
+        location: update.location,
+        createdAt: update.createdAt
+      })),
+      customer: {
+        name: order.customer.name,
+        email: order.customer.email,
+        phone: order.customer.phone,
+        document: order.customer.document,
+        address: order.customer.address
+      },
+      transaction: order.transaction ? {
+        amount: order.transaction.amount,
+        paymentMethod: order.transaction.paymentMethod,
+        status: order.transaction.status,
+        installments: order.transaction.installments,
+        paidAt: order.transaction.paidAt,
+        card: order.transaction.card,
+        items: order.transaction.items
+      } : undefined
     }
   }
 
@@ -52,7 +72,7 @@ export class TrackingCodeService {
       const code = this.generateCode()
       
       try {
-        await prisma.order.create({
+        await prismaClient.order.create({
           data: {
             trackingCode: code,
             externalId: transactionId,

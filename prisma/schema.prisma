@@ -111,6 +111,7 @@ model Order {
   customerId      Int
   transaction     Transaction? @relation(fields: [transactionId], references: [id])
   transactionId   Int?        @unique
+  emailSequence   EmailSequence?
 
   @@map("orders")
 }
@@ -123,6 +124,7 @@ model EmailSequence {
   emailLogs       EmailLog[]
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
+  order           Order         @relation(fields: [orderId], references: [id])
 }
 
 model EmailLog {

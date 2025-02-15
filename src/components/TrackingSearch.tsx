@@ -1,6 +1,7 @@
 import { Search, Package, Truck, MapPin } from 'lucide-react'
 import { useState } from 'react'
 import toast from 'react-hot-toast'
+import { useNavigate } from 'react-router-dom'
 
 const QuickAction = ({ icon: Icon, title, description }: { icon: any, title: string, description: string }) => (
   <button className="flex flex-col items-center p-4 bg-white dark:bg-gray-800 rounded-xl hover:shadow-md transition-all">
@@ -13,16 +14,14 @@ const QuickAction = ({ icon: Icon, title, description }: { icon: any, title: str
 )
 
 export default function TrackingSearch() {
-  const [trackingNumber, setTrackingNumber] = useState('')
+  const [trackingCode, setTrackingCode] = useState('')
+  const navigate = useNavigate()
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!trackingNumber.trim()) {
-      toast.error('Por favor, insira um número de rastreio')
-      return
+    if (trackingCode.trim()) {
+      navigate(`/tracking/${trackingCode.trim()}`)
     }
-    toast.success('Número de rastreio enviado: ' + trackingNumber)
-    setTrackingNumber('')
   }
 
   return (
@@ -50,9 +49,9 @@ export default function TrackingSearch() {
                 <div className="relative">
                   <input
                     type="text"
-                    value={trackingNumber}
-                    onChange={(e) => setTrackingNumber(e.target.value)}
-                    placeholder="Digite o número de rastreio"
+                    value={trackingCode}
+                    onChange={(e) => setTrackingCode(e.target.value)}
+                    placeholder="Digite o código de rastreio"
                     className="w-full h-[60px] px-4 py-4 pl-12 border border-gray-300 dark:border-gray-600 rounded-lg 
                              bg-white dark:bg-gray-700 text-gray-900 dark:text-white
                              focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400

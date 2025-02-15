@@ -1,14 +1,14 @@
 # Dependencies
-node_modules
-.pnp
+node_modules/
+.pnp/
 .pnp.js
 
 # Testing
-coverage
+coverage/
 
 # Production
-build
-dist
+build/
+dist/
 
 # Misc
 .DS_Store
@@ -23,12 +23,14 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Editor
-.vscode
-.idea
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Prisma
+.prisma/
 
 # TypeScript
 *.tsbuildinfo
-
-# Prisma
-prisma/*.db

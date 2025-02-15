@@ -1,8 +1,20 @@
+import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import TrackingSearch from '../components/TrackingSearch'
 import AboutUs from '../components/AboutUs'
 import Features from '../components/Features'
 
 export default function HomePage() {
+  const [trackingCode, setTrackingCode] = useState('')
+  const navigate = useNavigate()
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (trackingCode) {
+      navigate(`/tracking/${trackingCode}`)
+    }
+  }
+
   return (
     <main className="pt-16">
       <section id="track" className="scroll-mt-16">

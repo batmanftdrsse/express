@@ -2,10 +2,11 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcrypt';
 import { PrismaClient } from '@prisma/client';
+import trackingRoutes from './api/routes/tracking.js';
 
 const app = express();
 const prisma = new PrismaClient();
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 app.use(cors({
   origin: 'http://localhost:5173',
@@ -14,6 +15,9 @@ app.use(cors({
 }));
 
 app.use(express.json());
+
+// Registra as rotas
+app.use('/api', trackingRoutes);
 
 app.post('/auth/login', async (req, res) => {
   try {
@@ -52,5 +56,5 @@ app.post('/auth/login', async (req, res) => {
 });
 
 app.listen(PORT, () => {
-  console.log(`Auth server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 }); 
