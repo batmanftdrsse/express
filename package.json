@@ -2,10 +2,10 @@
   "name": "project-one",
   "private": true,
   "version": "0.0.0",
-  "scripts": {
-    "dev:api": "tsx watch api/server.ts",
+   "scripts": {
+    "dev:api": "NODE_ENV=development tsx watch api/server.ts --inspect",
     "dev:front": "vite",
-    "dev": "concurrently \"npm run dev:front\" \"npm run dev:api\"",
+    "start": "concurrently -n \"API,FRONT\" -c \"blue,green\" \"npm run dev:api\" \"npm run dev:front\"",
     "build": "tsc && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
