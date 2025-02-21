@@ -5,53 +5,50 @@ import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 interface TrackingInfo {
+  id: number
   trackingCode: string
-  status: string
+  externalId: string
   customerName: string
+  customerEmail: string
+  status: string
   currentStep: number
-  trackingUpdates: Array<{
-    status: string
-    description: string
-    location: string
-    createdAt: string
-  }>
   createdAt: string
-  transaction?: {
-    amount: number
-    paymentMethod: string
-    status: string
-    installments: number
-    paidAt: string
-    card?: {
-      brand: string
-      lastDigits: string
-      holderName: string
-      expirationMonth: number
-      expirationYear: number
-    }
-  }
+  updatedAt: string
+  customerId: number
+  transactionId: number | null
   customer: {
+    id: number
     name: string
     email: string
     phone: string
+    createdAt: string
+    updatedAt: string
     document: {
+      id: number
       number: string
       type: string
+      customerId: number
     }
     address: {
+      id: number
       street: string
       streetNumber: string
-      complement?: string
+      complement: string | null
       zipCode: string
       neighborhood: string
       city: string
       state: string
+      country: string
+      customerId: number
     }
   }
-  items: Array<{
-    title: string
-    quantity: number
-    unitPrice: number
+  trackingUpdates: Array<{
+    id: number
+    orderId: number
+    status: string
+    location: string
+    description: string
+    createdAt: string
   }>
 }
 
@@ -67,8 +64,19 @@ export default function TrackingPage() {
       
       try {
         setLoading(true)
-        const response = await fetch(`http://localhost:3001/api/tracking/${code}`)
+        console.log('Iniciando busca do pedido:', code)
+
+        const response = await fetch(`http://localhost:3001/api/tracking/${code}`, {
+          headers: {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
+          }
+        })
         
+        console.log('Status da resposta:', response.status)
+        const textResponse = await response.text() // Primeiro lê como texto
+        console.log('Resposta bruta:', textResponse)
+
         if (response.status === 404) {
           setError(`Pedido com código ${code} não encontrado`)
           setOrder(null)
@@ -79,10 +87,13 @@ export default function TrackingPage() {
           throw new Error('Erro ao buscar informações do pedido')
         }
 
-        const data = await response.json()
+        const data = JSON.parse(textResponse) // Depois converte para JSON
+        console.log('Dados parseados:', data)
+        
         setOrder(data)
         setError(null)
       } catch (error) {
+        console.error('Erro completo:', error)
         setError(error instanceof Error ? error.message : 'Erro ao buscar informações do pedido')
         setOrder(null)
       } finally {
