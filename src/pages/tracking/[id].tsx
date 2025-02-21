@@ -56,179 +56,126 @@ interface TrackingInfo {
 }
 
 export default function TrackingPage() {
-  const { id } = useParams<{ id: string }>()
-  const [trackingInfo, setTrackingInfo] = useState<TrackingInfo | null>(null)
-  const [error, setError] = useState<string | null>(null)
+  const { code } = useParams<{ code: string }>()
+  const [order, setOrder] = useState<TrackingInfo | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchTrackingInfo = async () => {
-      if (!id) return // Proteção extra para ID undefined
+      if (!code) return
       
       try {
-        setLoading(true) // Garante que loading é true ao iniciar busca
-        const response = await fetch(`http://localhost:3001/api/tracking/${id}`)
+        setLoading(true)
+        const response = await fetch(`http://localhost:3001/api/tracking/${code}`)
+        
+        if (response.status === 404) {
+          setError(`Pedido com código ${code} não encontrado`)
+          setOrder(null)
+          return
+        }
+
         if (!response.ok) {
-          throw new Error(response.status === 404 ? 'Pedido não encontrado' : 'Erro ao buscar informações do pedido')
+          throw new Error('Erro ao buscar informações do pedido')
         }
+
         const data = await response.json()
-        if (!data || !data.trackingUpdates) { // Validação extra dos dados
-          throw new Error('Dados do pedido inválidos')
-        }
-        setTrackingInfo(data)
+        setOrder(data)
         setError(null)
       } catch (error) {
         setError(error instanceof Error ? error.message : 'Erro ao buscar informações do pedido')
-        setTrackingInfo(null) // Limpa dados em caso de erro
-        console.error('Erro:', error)
+        setOrder(null)
       } finally {
         setLoading(false)
       }
     }
 
     fetchTrackingInfo()
-  }, [id])
+  }, [code])
 
-  // Mostra loading enquanto carrega
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-            Carregando informações...
-          </h2>
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-900 mx-auto"></div>
-        </div>
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+        <span className="ml-3">Carregando...</span>
       </div>
     )
   }
 
-  // Mostra erro se houver
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Erro</h2>
-          <p className="text-gray-600 dark:text-gray-300">{error}</p>
+      <div className="max-w-2xl mx-auto p-4">
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center">
+          <AlertCircle className="text-red-500 mr-3" />
+          <span className="text-red-700 dark:text-red-300">{error}</span>
+        </div>
+        <div className="mt-4 text-center">
+          <p className="text-gray-600 dark:text-gray-400">
+            Verifique se o código foi digitado corretamente e tente novamente.
+          </p>
         </div>
       </div>
     )
   }
 
-  // Proteção extra contra dados inválidos
-  if (!trackingInfo?.trackingUpdates) {
+  if (!order) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-yellow-500 mx-auto mb-4" />
-          <h2 className="text-xl font-bold text-gray-900 dark:text-white">Dados Indisponíveis</h2>
-          <p className="text-gray-600 dark:text-gray-300">Não foi possível carregar as informações do pedido</p>
+      <div className="max-w-2xl mx-auto p-4">
+        <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-4">
+          <h2 className="text-lg font-semibold text-yellow-800 dark:text-yellow-300 mb-2">
+            Pedido não encontrado
+          </h2>
+          <p className="text-yellow-700 dark:text-yellow-400">
+            Não foi possível encontrar um pedido com o código {code}.
+          </p>
         </div>
       </div>
     )
   }
 
-  // Renderização principal
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8 pt-20">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Informações principais */}
-          <div className="md:col-span-2 space-y-6">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
-                Rastreamento: {trackingInfo.trackingCode}
-              </h1>
-              
-              <div className="mb-6">
-                <p className="text-gray-600 dark:text-gray-300">
-                  Cliente: {trackingInfo?.customer.name}
-                </p>
-                <p className="text-gray-600 dark:text-gray-300">
-                  Data do pedido: {format(new Date(trackingInfo?.createdAt || ''), "dd 'de' MMMM 'de' yyyy", { locale: ptBR })}
-                </p>
-              </div>
+    <div className="max-w-2xl mx-auto p-4">
+      <h1 className="text-2xl font-bold mb-4">
+        Rastreamento: {order.trackingCode}
+      </h1>
 
-              {/* Timeline de atualizações com verificação extra */}
-              <div className="space-y-6">
-                {Array.isArray(trackingInfo.trackingUpdates) && trackingInfo.trackingUpdates.map((update, index) => (
-                  <div key={index} className="flex items-start space-x-4">
-                    <div className="flex-shrink-0">
-                      {update.status === 'PENDING' && <Package className="h-6 w-6 text-blue-500" />}
-                      {update.status === 'IN_TRANSIT' && <Truck className="h-6 w-6 text-yellow-500" />}
-                      {update.status === 'DELIVERED' && <CheckCircle className="h-6 w-6 text-green-500" />}
-                      {update.status === 'FAILED' && <AlertCircle className="h-6 w-6 text-red-500" />}
-                    </div>
-                    <div>
-                      <p className="font-medium text-gray-900 dark:text-white">
-                        {update.description}
-                      </p>
-                      <p className="text-sm text-gray-600 dark:text-gray-400">
-                        {update.location}
-                      </p>
-                      <p className="text-sm text-gray-500">
-                        {format(new Date(update.createdAt), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}
-                      </p>
-                    </div>
-                  </div>
-                ))}
+      {/* Informações do Cliente */}
+      <div className="mb-6">
+        <h2 className="text-lg font-semibold mb-2">Informações do Cliente</h2>
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+          <p>Nome: {order.customer?.name}</p>
+          <p>Email: {order.customer?.email}</p>
+          {order.customer?.address && (
+            <p>
+              Endereço: {order.customer.address.street}, {order.customer.address.streetNumber}
+              {order.customer.address.complement && `, ${order.customer.address.complement}`}
+              <br />
+              {order.customer.address.neighborhood} - {order.customer.address.city}/{order.customer.address.state}
+              <br />
+              CEP: {order.customer.address.zipCode}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Atualizações de Rastreio */}
+      <div>
+        <h2 className="text-lg font-semibold mb-2">Atualizações</h2>
+        <div className="space-y-4">
+          {order.trackingUpdates.map((update, index) => (
+            <div key={index} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+              <div className="font-semibold">{update.status}</div>
+              <div className="text-sm text-gray-600 dark:text-gray-300">
+                {update.location}
               </div>
+              <div className="text-sm text-gray-500">
+                {new Date(update.createdAt).toLocaleString()}
+              </div>
+              {update.description && (
+                <div className="mt-2 text-sm">{update.description}</div>
+              )}
             </div>
-          </div>
-
-          {/* Sidebar com informações adicionais */}
-          <div className="space-y-6">
-            {/* Informações do pagamento */}
-            {trackingInfo?.transaction && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                  <CreditCard className="h-5 w-5 mr-2" />
-                  Pagamento
-                </h2>
-                <div className="space-y-2">
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Valor: R$ {(trackingInfo.transaction.amount / 100).toFixed(2)}
-                  </p>
-                  <p className="text-gray-600 dark:text-gray-300">
-                    Método: {trackingInfo.transaction.paymentMethod === 'credit_card' ? 'Cartão de Crédito' : 'Outro'}
-                  </p>
-                  {trackingInfo.transaction.card && (
-                    <p className="text-gray-600 dark:text-gray-300">
-                      Cartão: {trackingInfo.transaction.card.brand.toUpperCase()} **** {trackingInfo.transaction.card.lastDigits}
-                    </p>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Endereço de entrega */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-6">
-              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
-                <MapPin className="h-5 w-5 mr-2" />
-                Endereço de Entrega
-              </h2>
-              <div className="space-y-2">
-                <p className="text-gray-600 dark:text-gray-300">
-                  {trackingInfo?.customer.address.street}, {trackingInfo?.customer.address.streetNumber}
-                </p>
-                {trackingInfo?.customer.address.complement && (
-                  <p className="text-gray-600 dark:text-gray-300">
-                    {trackingInfo.customer.address.complement}
-                  </p>
-                )}
-                <p className="text-gray-600 dark:text-gray-300">
-                  {trackingInfo?.customer.address.neighborhood}
-                </p>
-                <p className="text-gray-600 dark:text-gray-300">
-                  {trackingInfo?.customer.address.city} - {trackingInfo?.customer.address.state}
-                </p>
-                <p className="text-gray-600 dark:text-gray-300">
-                  CEP: {trackingInfo?.customer.address.zipCode}
-                </p>
-              </div>
-            </div>
-          </div>
+          ))}
         </div>
       </div>
     </div>

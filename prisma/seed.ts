@@ -1,22 +1,18 @@
 import { PrismaClient } from '@prisma/client'
 import bcrypt from 'bcrypt'
-import { customAlphabet } from 'nanoid'
 
-// Inicialize o cliente Prisma fora da função main
-const prisma = new PrismaClient({
-  log: ['query', 'info', 'warn', 'error']
-})
+const prisma = new PrismaClient()
 
-const generateTrackingCode = () => {
-  const nanoid = customAlphabet('1234567890', 6)
-  return `RAE${nanoid()}`
+function generateTrackingCode() {
+  const prefix = 'RAE'
+  const number = Math.floor(Math.random() * 1000000).toString().padStart(6, '0')
+  return `${prefix}${number}`
 }
 
 async function main() {
+  console.log('Starting seed...')
   try {
-    console.log('Starting seed...')
-    
-    // Criar usuário admin primeiro
+    // Criar usuário admin
     const hashedPassword = await bcrypt.hash('admin123', 10)
     const user = await prisma.user.upsert({
       where: { email: 'admin@rastreioexpress.com' },
@@ -25,19 +21,20 @@ async function main() {
         email: 'admin@rastreioexpress.com',
         passwordHash: hashedPassword,
         role: 'admin'
-      },
+      }
     })
     console.log('User created:', user)
 
     // Criar pedido de exemplo
+    const trackingCode = generateTrackingCode()
     const order = await prisma.order.create({
       data: {
-        trackingCode: 'RAE000123',
+        trackingCode,
         externalId: `EXT${Date.now()}`,
-        customerName: 'João Silva',
-        customerEmail: 'joao@exemplo.com',
         status: 'IN_TRANSIT',
         currentStep: 2,
+        customerName: 'João Silva',
+        customerEmail: 'joao@exemplo.com',
         customer: {
           create: {
             name: 'João Silva',
@@ -56,7 +53,8 @@ async function main() {
                 zipCode: '12345678',
                 neighborhood: 'Centro',
                 city: 'São Paulo',
-                state: 'SP'
+                state: 'SP',
+                country: 'Brasil'
               }
             }
           }
@@ -73,19 +71,17 @@ async function main() {
       }
     })
     console.log('Order created:', order)
-    console.log('Pedido criado com código:', order.trackingCode)
+    console.log('Pedido criado com código:', trackingCode)
 
     console.log('Seed completed successfully')
   } catch (error) {
     console.error('Error during seed:', error)
     throw error
   } finally {
-    // Importante: desconecte o cliente no final
     await prisma.$disconnect()
   }
 }
 
-// Execute a função main
 main()
   .catch((e) => {
     console.error('Seed error:', e)

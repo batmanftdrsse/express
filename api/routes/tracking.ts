@@ -1,46 +1,50 @@
 import { Router } from 'express'
-import prisma from '../../src/lib/prisma'
+import { PrismaClient } from '@prisma/client'
 
 const router = Router()
+const prisma = new PrismaClient()
 
 // Rota para buscar informações de rastreio
 router.get('/tracking/:code', async (req, res) => {
   try {
     const { code } = req.params
-    console.log('Buscando tracking:', code)
-
-    const orders = await prisma.order.findMany()
-    console.log('Todos os pedidos:', orders)
+    console.log('Buscando pedido:', code)
 
     const order = await prisma.order.findUnique({
-      where: { trackingCode: code },
+      where: { 
+        trackingCode: code 
+      },
       include: {
-        trackingUpdates: true,
         customer: {
           include: {
-            document: true,
-            address: true
+            address: true,
+            document: true
           }
         },
-        transaction: {
-          include: {
-            card: true,
-            items: true
+        trackingUpdates: {
+          orderBy: {
+            createdAt: 'desc'
           }
         }
       }
     })
 
-    console.log('Resultado da busca:', order)
-
     if (!order) {
-      return res.status(404).json({ error: 'Pedido não encontrado' })
+      console.log('Pedido não encontrado:', code)
+      return res.status(404).json({ 
+        error: 'Pedido não encontrado',
+        code 
+      })
     }
 
+    console.log('Pedido encontrado:', order)
     res.json(order)
   } catch (error) {
-    console.error('Erro ao buscar tracking:', error)
-    res.status(500).json({ error: 'Erro interno do servidor' })
+    console.error('Erro ao buscar pedido:', error)
+    res.status(500).json({ 
+      error: 'Erro ao buscar informações do pedido',
+      details: process.env.NODE_ENV === 'development' ? error.message : undefined
+    })
   }
 })
 

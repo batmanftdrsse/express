@@ -19,7 +19,7 @@ prisma.$connect()
     process.exit(1);
   });
 
-const PORT = 3001;
+const PORT = process.env.PORT || 3001;
 
 // Configuração do CORS
 app.use(cors({
@@ -42,8 +42,12 @@ app.use('/api', emailRoutes)
 app.use('/api', webhookRoutes)
 app.use('/api', trackingRoutes)
 
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok' });
+// Rota de health check
+app.get('/api/health', (req, res) => {
+  res.json({ 
+    status: 'ok',
+    timestamp: new Date().toISOString()
+  });
 });
 
 // Rota de login
@@ -199,4 +203,6 @@ process.on('uncaughtException', (error) => {
 
 process.on('unhandledRejection', (error) => {
   console.error('Unhandled rejection:', error);
-}); 
+});
+
+export default app; 
