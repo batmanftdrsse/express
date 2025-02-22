@@ -53,45 +53,71 @@ interface TrackingInfo {
 }
 
 export default function TrackingPage() {
-  const { code } = useParams<{ code: string }>()
+  const params = useParams()
+  const { code } = params
+  
+  console.log('Parâmetros recebidos:', params)
+  console.log('Código extraído:', code)
+
   const [order, setOrder] = useState<TrackingInfo | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  console.log('TrackingPage renderizado com código:', code)
+
   useEffect(() => {
     const fetchTrackingInfo = async () => {
-      if (!code) return
+      if (!code) {
+        console.log('Código não fornecido')
+        return
+      }
       
       try {
         setLoading(true)
         console.log('Iniciando busca do pedido:', code)
 
-        const response = await fetch(`http://localhost:3001/api/tracking/${code}`, {
+        // Força a URL da API
+        const apiUrl = 'http://localhost:3001'
+        const url = `${apiUrl}/api/tracking/${code}`
+        
+        console.log('Fazendo requisição para:', url)
+
+        const response = await fetch(url, {
+          method: 'GET',
           headers: {
             'Accept': 'application/json',
             'Content-Type': 'application/json'
-          }
+          },
+          mode: 'cors'
         })
-        
+
         console.log('Status da resposta:', response.status)
-        const textResponse = await response.text() // Primeiro lê como texto
+        
+        // Lê o corpo da resposta como texto primeiro para debug
+        const textResponse = await response.text()
         console.log('Resposta bruta:', textResponse)
 
-        if (response.status === 404) {
-          setError(`Pedido com código ${code} não encontrado`)
-          setOrder(null)
-          return
-        }
+        try {
+          // Converte para JSON
+          const data = JSON.parse(textResponse)
+          console.log('Dados parseados:', data)
 
-        if (!response.ok) {
-          throw new Error('Erro ao buscar informações do pedido')
-        }
+          if (response.status === 404) {
+            setError(`Pedido com código ${code} não encontrado`)
+            setOrder(null)
+            return
+          }
 
-        const data = JSON.parse(textResponse) // Depois converte para JSON
-        console.log('Dados parseados:', data)
-        
-        setOrder(data)
-        setError(null)
+          if (!response.ok) {
+            throw new Error('Erro ao buscar informações do pedido')
+          }
+
+          setOrder(data)
+          setError(null)
+        } catch (parseError) {
+          console.error('Erro ao fazer parse do JSON:', parseError)
+          throw new Error('Erro ao processar resposta do servidor')
+        }
       } catch (error) {
         console.error('Erro completo:', error)
         setError(error instanceof Error ? error.message : 'Erro ao buscar informações do pedido')
@@ -101,6 +127,7 @@ export default function TrackingPage() {
       }
     }
 
+    console.log('useEffect executado com código:', code)
     fetchTrackingInfo()
   }, [code])
 
@@ -145,46 +172,87 @@ export default function TrackingPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">
+    <div className="max-w-2xl mx-auto p-4 bg-gray-50 dark:bg-gray-900 min-h-screen">
+      <h1 className="text-2xl font-bold mb-4 text-gray-900 dark:text-gray-100">
         Rastreamento: {order.trackingCode}
       </h1>
 
+      {/* Status do Pedido */}
+      <div className="mb-6">
+        <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Status: <span className="text-blue-600 dark:text-blue-400">{order.status}</span>
+              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Pedido criado em: {new Date(order.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+            <div className="text-blue-600 dark:text-blue-400">
+              <Package size={24} />
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Informações do Cliente */}
       <div className="mb-6">
-        <h2 className="text-lg font-semibold mb-2">Informações do Cliente</h2>
+        <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">
+          <User className="inline-block mr-2" size={20} />
+          Informações do Cliente
+        </h2>
         <div className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-          <p>Nome: {order.customer?.name}</p>
-          <p>Email: {order.customer?.email}</p>
+          <p className="text-gray-700 dark:text-gray-300">
+            <span className="font-medium">Nome:</span> {order.customer?.name}
+          </p>
+          <p className="text-gray-700 dark:text-gray-300">
+            <span className="font-medium">Email:</span> {order.customer?.email}
+          </p>
           {order.customer?.address && (
-            <p>
-              Endereço: {order.customer.address.street}, {order.customer.address.streetNumber}
-              {order.customer.address.complement && `, ${order.customer.address.complement}`}
-              <br />
-              {order.customer.address.neighborhood} - {order.customer.address.city}/{order.customer.address.state}
-              <br />
-              CEP: {order.customer.address.zipCode}
-            </p>
+            <div className="mt-2 text-gray-700 dark:text-gray-300">
+              <p className="font-medium mb-1">Endereço:</p>
+              <div className="pl-4">
+                <p>{order.customer.address.street}, {order.customer.address.streetNumber}
+                {order.customer.address.complement && `, ${order.customer.address.complement}`}</p>
+                <p>{order.customer.address.neighborhood} - {order.customer.address.city}/{order.customer.address.state}</p>
+                <p>CEP: {order.customer.address.zipCode}</p>
+              </div>
+            </div>
           )}
         </div>
       </div>
 
       {/* Atualizações de Rastreio */}
       <div>
-        <h2 className="text-lg font-semibold mb-2">Atualizações</h2>
+        <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">
+          <Truck className="inline-block mr-2" size={20} />
+          Atualizações
+        </h2>
         <div className="space-y-4">
           {order.trackingUpdates.map((update, index) => (
             <div key={index} className="bg-white dark:bg-gray-800 p-4 rounded-lg shadow">
-              <div className="font-semibold">{update.status}</div>
-              <div className="text-sm text-gray-600 dark:text-gray-300">
-                {update.location}
+              <div className="flex items-start">
+                <div className="mr-4 text-blue-600 dark:text-blue-400">
+                  <MapPin size={20} />
+                </div>
+                <div className="flex-1">
+                  <div className="font-semibold text-gray-900 dark:text-gray-100">
+                    {update.status}
+                  </div>
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    {update.location}
+                  </div>
+                  <div className="text-sm text-gray-500 dark:text-gray-500">
+                    {new Date(update.createdAt).toLocaleString()}
+                  </div>
+                  {update.description && (
+                    <div className="mt-2 text-sm text-gray-700 dark:text-gray-300">
+                      {update.description}
+                    </div>
+                  )}
+                </div>
               </div>
-              <div className="text-sm text-gray-500">
-                {new Date(update.createdAt).toLocaleString()}
-              </div>
-              {update.description && (
-                <div className="mt-2 text-sm">{update.description}</div>
-              )}
             </div>
           ))}
         </div>

@@ -24,7 +24,7 @@ const AppRoutes = () => {
             </PrivateRoute>
           }
         />
-        <Route path="/tracking/:id" element={<TrackingPage />} />
+        <Route path="/tracking/:code" element={<TrackingPage />} />
       </RouterRoutes>
     </div>
   )
