@@ -1,16 +1,29 @@
-import cron from 'node-cron';
-import { EmailSequenceService } from '../services/EmailSequenceService';
+import { PrismaClient } from '@prisma/client'
+import { EmailSequenceService } from '../services/EmailSequenceService'
+import { scheduleJob } from 'node-schedule'
 
-const emailService = new EmailSequenceService();
+const prisma = new PrismaClient()
+const emailService = new EmailSequenceService()
 
-// Executa a cada hora
-export const startEmailSequenceCron = () => {
-  cron.schedule('0 * * * *', async () => {
-    console.log('Processando sequência de emails...');
+export function startEmailSequenceCron() {
+  // Executa a cada 5 minutos
+  scheduleJob('*/5 * * * *', async () => {
     try {
-      await emailService.processScheduledEmails();
+      // Buscar sequências ativas que precisam do próximo email
+      const sequences = await prisma.emailSequence.findMany({
+        where: {
+          status: 'active',
+          lastEmailSentAt: {
+            lt: new Date(Date.now() - 24 * 60 * 60 * 1000) // 24h atrás
+          }
+        }
+      })
+
+      for (const sequence of sequences) {
+        await emailService.sendNextEmail(sequence.id)
+      }
     } catch (error) {
-      console.error('Erro ao processar emails:', error);
+      console.error('Erro no job de emails:', error)
     }
-  });
-}; 
+  })
+} 

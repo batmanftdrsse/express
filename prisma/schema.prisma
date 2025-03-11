@@ -7,6 +7,18 @@ generator client {
   provider = "prisma-client-js"
 }
 
+enum EmailStatus {
+  PENDING
+  SENT
+  FAILED
+}
+
+enum EmailType {
+  WELCOME
+  ORDER_CONFIRMATION
+  SHIPPING_UPDATE
+}
+
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
@@ -15,36 +27,73 @@ model User {
   createdAt DateTime @default(now())
 }
 
+model Customer {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  name      String
+  phone     String?
+  orders    Order[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
 model Order {
-  id            String      @id @default(uuid())
-  customerEmail String
-  trackingCode  String      @unique
-  createdAt     DateTime    @default(now())
-  status        String
+  id            String          @id @default(uuid())
+  customerId    String
+  customer      Customer        @relation(fields: [customerId], references: [id])
+  trackingCode  String          @unique
+  status        String          @default("pending")
+  amount        Float
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  emailSequence EmailSequence?
   funnelSteps   FunnelStep[]
 }
 
+model EmailSequence {
+  id              String    @id @default(uuid())
+  orderId         String    @unique
+  order           Order     @relation(fields: [orderId], references: [id])
+  currentStep     Int       @default(1)
+  status          String    @default("active")
+  startedAt       DateTime  @default(now())
+  completedAt     DateTime?
+  lastEmailSentAt DateTime?
+  emailLogs       EmailLog[]
+}
+
+model EmailLog {
+  id           String        @id @default(uuid())
+  sequenceId   String
+  sequence     EmailSequence @relation(fields: [sequenceId], references: [id])
+  step         Int
+  emailType    EmailType
+  status       EmailStatus
+  templateId   String
+  sentAt       DateTime      @default(now())
+  metadata     String?       // JSON string para SQLite
+}
+
+model EmailTemplate {
+  id           String       @id @default(uuid())
+  name         String
+  subject      String
+  content      String
+  delayHours   Int
+  isActive     Boolean      @default(true)
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+  funnelSteps  FunnelStep[]
+}
+
 model FunnelStep {
-  id          String    @id @default(uuid())
+  id          String        @id @default(uuid())
   orderId     String
-  order       Order     @relation(fields: [orderId], references: [id])
+  order       Order         @relation(fields: [orderId], references: [id])
   templateId  String
   template    EmailTemplate @relation(fields: [templateId], references: [id])
   status      String
   sentAt      DateTime?
-  attempts    Int       @default(0)
+  attempts    Int          @default(0)
   error       String?
-}
-
-model EmailTemplate {
-  id             String       @id @default(uuid())
-  name           String
-  subject        String
-  content        String
-  delayHours     Int
-  payment_method String?
-  is_active      Boolean     @default(true)
-  created_at     DateTime    @default(now())
-  updated_at     DateTime    @updatedAt
-  steps          FunnelStep[]
 }

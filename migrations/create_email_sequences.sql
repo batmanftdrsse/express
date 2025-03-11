@@ -26,5 +26,10 @@ CREATE TABLE email_logs (
   email_type VARCHAR(50) NOT NULL,
   sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   status VARCHAR(50),
-  customer_email VARCHAR(255) NOT NULL
-); 
+  customer_email VARCHAR(255) NOT NULL,
+  template_id VARCHAR(255),
+  metadata JSONB
+);
+
+CREATE INDEX idx_email_sequences_status ON email_sequences(status);
+CREATE INDEX idx_email_logs_sequence_id ON email_logs(sequence_id); 

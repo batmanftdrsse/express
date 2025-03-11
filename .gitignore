@@ -29,5 +29,6 @@ yarn-error.log*
 .DS_Store
 Thumbs.db
 
-# Prisma
+# Database
+*.db
 prisma/*.db

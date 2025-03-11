@@ -1,75 +1,68 @@
+import nodemailer from 'nodemailer';
 import { PrismaClient, EmailType, EmailStatus } from '@prisma/client'
-import { emailTemplates } from '../templates/emails'
 
-const prisma = new PrismaClient()
+const TEMPLATES = {
+  WELCOME: '0p7kx4xo08749yjr',
+  ORDER_CONFIRMATION: 'z3m5jgr1jeo4dpyo',
+  SHIPPING_UPDATE: '3zxk54v1oq64jy6v'
+} as const
 
 export class EmailService {
-  private apiKey: string
-  private baseUrl: string
+  private transporter: nodemailer.Transporter;
+  private prisma: PrismaClient;
 
   constructor() {
-    this.apiKey = process.env.MAILERSEND_API_KEY || ''
-    this.baseUrl = 'https://api.mailersend.com/v1'
+    this.prisma = new PrismaClient();
+    this.transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port: Number(process.env.SMTP_PORT),
+      secure: false,
+      auth: {
+        user: process.env.SMTP_USERNAME,
+        pass: process.env.SMTP_PASSWORD
+      }
+    });
   }
 
-  async sendEmail(to: string, type: EmailType, data: any) {
+  async sendEmail(to: string, subject: string, templateId: string, variables: Record<string, any>) {
     try {
-      // Cria o log antes de enviar
-      const emailLog = await prisma.emailLog.create({
-        data: {
-          email: to,
-          type,
-          status: EmailStatus.PENDING,
-          metadata: data
-        }
-      })
+      console.log('Enviando email:', { to, templateId, variables });
 
-      // Configura o email baseado no tipo
-      const template = emailTemplates[type](data)
+      const info = await this.transporter.sendMail({
+        from: `"${process.env.MAILERSEND_FROM_NAME}" <${process.env.MAILERSEND_FROM_EMAIL}>`,
+        to,
+        subject,
+        html: `<div>Template ID: ${templateId}</div>
+              <pre>${JSON.stringify(variables, null, 2)}</pre>`
+      });
 
-      // Prepara o payload para a API do MailerSend
-      const payload = {
-        from: {
-          email: process.env.SMTP_FROM,
-          name: 'RastreioExpress'
-        },
-        to: [
-          {
-            email: to
-          }
-        ],
-        subject: template.subject,
-        html: template.html,
-        text: template.html.replace(/<[^>]*>/g, ''), // Strip HTML tags for text version
-        tags: [type, emailLog.id]
-      }
-
-      // Envia o email usando a API do MailerSend
-      const response = await fetch(`${this.baseUrl}/email`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.apiKey}`
-        },
-        body: JSON.stringify(payload)
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(`MailerSend API error: ${JSON.stringify(error)}`)
-      }
-
-      // Atualiza o status
-      await prisma.emailLog.update({
-        where: { id: emailLog.id },
-        data: { status: EmailStatus.SENT }
-      })
-
-      return emailLog
-
+      console.log('Email enviado:', info.messageId);
+      return info;
     } catch (error) {
-      console.error('Erro ao enviar email:', error)
-      throw error
+      console.error('Erro ao enviar email:', error);
+      throw error;
     }
+  }
+
+  async logEmailSent(data: {
+    sequenceId: string;
+    step: number;
+    type: EmailType;
+    email: string;
+    templateId: string;
+    metadata?: Record<string, any>;
+  }) {
+    return this.prisma.emailLog.create({
+      data: {
+        step: data.step,
+        emailType: data.type,
+        templateId: data.templateId,
+        status: EmailStatus.SENT,
+        metadata: data.metadata ? JSON.stringify(data.metadata) : null,
+        sequence: {
+          connect: { id: data.sequenceId.toString() }
+        }
+      }
+    });
   }
 } 

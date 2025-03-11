@@ -1,175 +1,132 @@
-import { PrismaClient, Prisma } from '@prisma/client'
-import type { Order, EmailType } from '@prisma/client'
-import { MailerService } from './MailerService'
+import { PrismaClient, EmailType } from '@prisma/client'
+import { EmailService } from './EmailService'
 
-const prisma = new PrismaClient()
-const mailer = new MailerService()
+const TEMPLATES = {
+  WELCOME: '0p7kx4xo08749yjr',
+  ORDER_CONFIRMATION: 'z3m5jgr1jeo4dpyo',
+  SHIPPING_UPDATE: '3zxk54v1oq64jy6v'
+} as const
 
-interface EmailTemplate {
-  id: string
-  type: EmailType
-  delayDays: number
-}
-
-const EMAIL_TEMPLATES: EmailTemplate[] = [
+const SEQUENCE_STEPS = [
   {
-    id: 'template1', // ID do template no MailerSend
-    type: 'PURCHASE_CONFIRMATION',
-    delayDays: 0
+    template: TEMPLATES.WELCOME,
+    subject: 'Bem-vindo ao RastreioExpress',
+    type: EmailType.WELCOME,
+    delay: 0 // imediato
   },
   {
-    id: 'template2', // ID do template no MailerSend
-    type: 'TRANSIT_UPDATE',
-    delayDays: 4
+    template: TEMPLATES.ORDER_CONFIRMATION,
+    subject: 'Seu pedido foi confirmado',
+    type: EmailType.ORDER_CONFIRMATION,
+    delay: 1 * 60 * 60 * 1000 // 1 hora
   },
   {
-    id: 'template3', // ID do template no MailerSend
-    type: 'CUSTOMS_NOTIFICATION',
-    delayDays: 7
+    template: TEMPLATES.SHIPPING_UPDATE,
+    subject: 'Atualização do seu pedido',
+    type: EmailType.SHIPPING_UPDATE,
+    delay: 24 * 60 * 60 * 1000 // 24 horas
   }
 ]
 
 export class EmailSequenceService {
-  async startSequence(order: Order) {
-    try {
-      // Cria a sequência de emails
-      const sequence = await prisma.emailSequence.create({
-        data: {
-          orderId: order.id,
-          status: 'ACTIVE'
-        }
-      })
+  private prisma: PrismaClient
+  private emailService: EmailService
 
-      // Agenda todos os emails da sequência
-      for (const template of EMAIL_TEMPLATES) {
-        await prisma.emailLog.create({
-          data: {
-            sequenceId: sequence.id,
-            emailType: template.type,
-            status: 'PENDING'
-          }
-        })
-      }
-
-      // Envia o primeiro email imediatamente
-      await this.sendPurchaseConfirmation(order, sequence.id)
-
-      return sequence
-    } catch (error) {
-      console.error('Erro ao iniciar sequência:', error)
-      throw error
-    }
+  constructor() {
+    this.prisma = new PrismaClient()
+    this.emailService = new EmailService()
   }
 
-  private async sendPurchaseConfirmation(order: Order, sequenceId: number) {
+  async startSequence(orderId: string) {
+    const order = await this.prisma.order.findUnique({
+      where: { id: orderId },
+      include: { customer: true }
+    })
+
+    if (!order) throw new Error('Pedido não encontrado')
+
+    // Verificar se já existe uma sequência para este pedido
+    const existingSequence = await this.prisma.emailSequence.findUnique({
+      where: { orderId: order.id }
+    })
+
+    if (existingSequence) {
+      throw new Error('Já existe uma sequência de emails para este pedido')
+    }
+
+    const sequence = await this.prisma.emailSequence.create({
+      data: {
+        currentStep: 1,
+        status: 'active',
+        order: {
+          connect: { id: orderId }
+        }
+      }
+    })
+
+    // Envia o primeiro email imediatamente
+    await this.sendNextEmail(sequence.id)
+
+    return sequence
+  }
+
+  async sendNextEmail(sequenceId: string) {
+    const sequence = await this.prisma.emailSequence.findUnique({
+      where: { id: sequenceId },
+      include: {
+        order: {
+          include: { customer: true }
+        }
+      }
+    })
+
+    if (!sequence) throw new Error('Sequência não encontrada')
+    if (sequence.status !== 'active') return
+
+    const step = SEQUENCE_STEPS[sequence.currentStep - 1]
+    if (!step) {
+      // Finaliza a sequência se não houver mais emails
+      await this.prisma.emailSequence.update({
+        where: { id: sequenceId },
+        data: {
+          status: 'completed',
+          completedAt: new Date()
+        }
+      })
+      return
+    }
+
     try {
-      const template = EMAIL_TEMPLATES[0]
-      
-      await mailer.sendEmail(
-        order.customerEmail,
-        template.id,
+      await this.emailService.sendEmail(
+        sequence.order.customer.email,
+        step.subject,
+        step.template,
         {
-          name: order.customerName,
-          tracking_code: order.trackingCode,
-          tracking_url: `https://seusite.com/rastrear/${order.trackingCode}`
+          customerName: sequence.order.customer.name,
+          trackingCode: sequence.order.trackingCode,
+          orderNumber: sequence.order.id
         }
       )
 
-      await prisma.emailLog.updateMany({
-        where: {
-          sequenceId,
-          emailType: template.type
-        },
+      await this.emailService.logEmailSent({
+        sequenceId: sequenceId,
+        step: sequence.currentStep,
+        type: step.type,
+        email: sequence.order.customer.email,
+        templateId: step.template
+      })
+
+      // Atualiza o status da sequência
+      await this.prisma.emailSequence.update({
+        where: { id: sequenceId },
         data: {
-          status: 'SENT',
-          sentAt: new Date()
+          currentStep: sequence.currentStep + 1,
+          lastEmailSentAt: new Date()
         }
       })
     } catch (error) {
-      console.error('Erro ao enviar email de confirmação:', error)
-      await this.logEmailError(sequenceId, 'PURCHASE_CONFIRMATION', error)
+      console.error('Erro ao enviar email:', error)
       throw error
     }
-  }
-
-  async processScheduledEmails() {
-    try {
-      const sequences = await prisma.emailSequence.findMany({
-        where: { status: 'ACTIVE' },
-        include: {
-          order: true,
-          emailLogs: true
-        }
-      })
-
-      for (const sequence of sequences) {
-        const { order, emailLogs } = sequence
-        const daysSinceStart = Math.floor(
-          (new Date().getTime() - sequence.createdAt.getTime()) / (1000 * 60 * 60 * 24)
-        )
-
-        // Processa cada template que deve ser enviado
-        for (const template of EMAIL_TEMPLATES) {
-          if (daysSinceStart >= template.delayDays) {
-            const emailLog = emailLogs.find(log => 
-              log.emailType === template.type && log.status === 'PENDING'
-            )
-
-            if (emailLog) {
-              try {
-                await mailer.sendEmail(
-                  order.customerEmail,
-                  template.id,
-                  {
-                    name: order.customerName,
-                    tracking_code: order.trackingCode,
-                    tracking_url: `https://seusite.com/rastrear/${order.trackingCode}`,
-                    // Dados específicos para cada tipo de email
-                    ...(template.type === 'CUSTOMS_NOTIFICATION' && {
-                      customs_fee: 'R$ XXX,XX' // Valor exemplo
-                    })
-                  }
-                )
-
-                await prisma.emailLog.update({
-                  where: { id: emailLog.id },
-                  data: {
-                    status: 'SENT',
-                    sentAt: new Date()
-                  }
-                })
-              } catch (error) {
-                await this.logEmailError(sequence.id, template.type, error)
-              }
-            }
-          }
-        }
-
-        // Verifica se todos os emails foram enviados
-        const allEmailsSent = emailLogs.every(log => log.status === 'SENT')
-        if (allEmailsSent) {
-          await prisma.emailSequence.update({
-            where: { id: sequence.id },
-            data: { status: 'COMPLETED' }
-          })
-        }
-      }
-    } catch (error) {
-      console.error('Erro ao processar emails agendados:', error)
-      throw error
-    }
-  }
-
-  private async logEmailError(sequenceId: number, emailType: EmailType, error: any) {
-    await prisma.emailLog.updateMany({
-      where: {
-        sequenceId,
-        emailType
-      },
-      data: {
-        status: 'FAILED',
-        error: error.message || 'Erro desconhecido'
-      }
-    })
   }
 } 

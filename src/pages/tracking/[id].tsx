@@ -50,6 +50,15 @@ interface TrackingInfo {
     description: string
     createdAt: string
   }>
+  statusText: string
+}
+
+const statusMap = {
+  1: 'Pedido Confirmado',
+  2: 'Em Separação',
+  3: 'Em Trânsito',
+  4: 'Saiu para Entrega',
+  5: 'Entregue'
 }
 
 export default function TrackingPage() {
@@ -112,7 +121,10 @@ export default function TrackingPage() {
             throw new Error('Erro ao buscar informações do pedido')
           }
 
-          setOrder(data)
+          setOrder({
+            ...data,
+            statusText: statusMap[data.currentStep] || 'Status Desconhecido'
+          })
           setError(null)
         } catch (parseError) {
           console.error('Erro ao fazer parse do JSON:', parseError)
@@ -183,7 +195,7 @@ export default function TrackingPage() {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                Status: <span className="text-blue-600 dark:text-blue-400">{order.status}</span>
+                Status: <span className="text-blue-600 dark:text-blue-400">{order.statusText}</span>
               </h2>
               <p className="text-sm text-gray-600 dark:text-gray-400">
                 Pedido criado em: {new Date(order.createdAt).toLocaleDateString()}
