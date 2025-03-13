@@ -2,12 +2,12 @@ import { MailerSend, EmailParams, Sender, Recipient } from 'mailersend';
 
 async function testMailerSend() {
   const mailer = new MailerSend({
-    apiKey: 'mlsn.7921b53ed158082bb29dcaf0ae1636c4a534f6ac36f0ef2c1ff433a724ead347'
+    apiKey: process.env.MAILERSEND_API_KEY || ''
   });
 
   const sender = new Sender(
-    'no-reply@trial-jpzkmgq1ed2l059v.mlsender.net',
-    'RastreioExpress'
+    process.env.MAILERSEND_FROM_EMAIL || '',
+    process.env.MAILERSEND_FROM_NAME || ''
   );
 
   try {

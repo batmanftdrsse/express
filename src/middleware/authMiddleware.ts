@@ -1,32 +1,23 @@
-import { NextFunction, Request, Response } from 'express';
+import { NextApiRequest, NextApiResponse } from 'next';
+import jwt from 'jsonwebtoken';
 
-interface AuthenticatedRequest extends Request {
-  session: {
-    userId?: number;
-    lastActivity?: number;
-  }
-}
+const JWT_SECRET = process.env.JWT_SECRET || 'sua_chave_secreta_aqui';
 
-export const authMiddleware = (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
-  const SESSION_TIMEOUT = 10 * 60 * 1000; // 10 minutos em milissegundos
-  
-  // Verifica se existe uma sessão
-  if (!req.session.userId) {
-    return res.redirect('/login');
-  }
+export function authMiddleware(handler: any) {
+  return async (req: NextApiRequest, res: NextApiResponse) => {
+    try {
+      const token = req.headers.authorization?.replace('Bearer ', '');
 
-  // Verifica timeout da sessão
-  const currentTime = Date.now();
-  const lastActivity = req.session.lastActivity || 0;
-  
-  if (currentTime - lastActivity > SESSION_TIMEOUT) {
-    req.session.destroy(() => {
-      res.redirect('/login');
-    });
-    return;
-  }
+      if (!token) {
+        return res.status(401).json({ error: 'Token não fornecido' });
+      }
 
-  // Atualiza o timestamp da última atividade
-  req.session.lastActivity = currentTime;
-  next();
-}; 
+      const decoded = jwt.verify(token, JWT_SECRET);
+      req.user = decoded;
+
+      return handler(req, res);
+    } catch (error) {
+      return res.status(401).json({ error: 'Token inválido' });
+    }
+  };
+} 

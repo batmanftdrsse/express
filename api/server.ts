@@ -6,6 +6,7 @@ import emailRoutes from './routes/email'
 import webhookRoutes from './routes/webhook'
 import bcrypt from 'bcrypt';
 import trackingRoutes from './routes/tracking';
+import authRoutes from './routes/auth';
 
 const app = express();
 
@@ -47,6 +48,9 @@ app.use('/api', dashboardRoutes);
 app.use('/api', emailRoutes)
 app.use('/api', webhookRoutes)
 app.use('/api', trackingRoutes)
+
+// Rotas de autenticação
+app.use('/auth', authRoutes);
 
 // Rota de health check
 app.get('/api/health', (req, res) => {

@@ -3,20 +3,20 @@ import nodemailer from 'nodemailer';
 async function testSmtp() {
   // Criar transportador SMTP
   const transporter = nodemailer.createTransport({
-    host: "smtp.mailersend.net",
-    port: 587,
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT),
     secure: false,
     auth: {
-      user: "MS_dyXm3w@trial-jpzkmgq1ed2l059v.mlsender.net",
-      pass: "mssp.HlaXEdC.0r83ql3jdp0gzw1j.q0gmhD4"
+      user: process.env.SMTP_USERNAME,
+      pass: process.env.SMTP_PASSWORD
     }
   });
 
   try {
     // Enviar email
     const info = await transporter.sendMail({
-      from: '"RastreioExpress" <no-reply@trial-jpzkmgq1ed2l059v.mlsender.net>',
-      to: "nicolasfranciscosouzafernando@gmail.com", // Substitua pelo seu email
+      from: `"${process.env.MAILERSEND_FROM_NAME}" <${process.env.MAILERSEND_FROM_EMAIL}>`,
+      to: "seu-email@gmail.com",
       subject: "Teste SMTP",
       text: "Teste de email via SMTP",
       html: "<b>Teste de email via SMTP</b>"

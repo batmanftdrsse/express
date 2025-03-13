@@ -20,7 +20,7 @@ enum EmailType {
 }
 
 model User {
-  id        String   @id @default(uuid())
+  id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
   name      String?
@@ -28,31 +28,47 @@ model User {
 }
 
 model Customer {
-  id        String   @id @default(uuid())
-  email     String   @unique
+  id        Int      @id @default(autoincrement())
   name      String
-  phone     String?
+  email     String
+  phone     String
   orders    Order[]
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  address   Address?
+  document  CustomerDocument?
+}
+
+model CustomerDocument {
+  id         Int      @id @default(autoincrement())
+  customerId Int      @unique
+  customer   Customer @relation(fields: [customerId], references: [id])
+  type       String   // CPF ou CNPJ
+  number     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 }
 
 model Order {
-  id            String          @id @default(uuid())
-  customerId    String
-  customer      Customer        @relation(fields: [customerId], references: [id])
-  trackingCode  String          @unique
-  status        String          @default("pending")
-  amount        Float
-  createdAt     DateTime        @default(now())
-  updatedAt     DateTime        @updatedAt
-  emailSequence EmailSequence?
-  funnelSteps   FunnelStep[]
+  id               Int            @id @default(autoincrement())
+  trackingCode     String         @unique
+  status          String         @default("pending")
+  currentStep      Int           @default(1)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  customerId      Int
+  customer        Customer       @relation(fields: [customerId], references: [id])
+  items           Item[]
+  trackingUpdates TrackingUpdate[]
+  origin          String?
+  destination     String?
+  estimatedDelivery DateTime?
+  urgentDelivery   Boolean       @default(false)
+  emailSequence    EmailSequence?
+  funnelSteps      FunnelStep[]
 }
 
 model EmailSequence {
-  id              String    @id @default(uuid())
-  orderId         String    @unique
+  id              Int       @id @default(autoincrement())
+  orderId         Int       @unique
   order           Order     @relation(fields: [orderId], references: [id])
   currentStep     Int       @default(1)
   status          String    @default("active")
@@ -63,8 +79,8 @@ model EmailSequence {
 }
 
 model EmailLog {
-  id           String        @id @default(uuid())
-  sequenceId   String
+  id           Int           @id @default(autoincrement())
+  sequenceId   Int
   sequence     EmailSequence @relation(fields: [sequenceId], references: [id])
   step         Int
   emailType    EmailType
@@ -75,7 +91,7 @@ model EmailLog {
 }
 
 model EmailTemplate {
-  id           String       @id @default(uuid())
+  id           Int          @id @default(autoincrement())
   name         String
   subject      String
   content      String
@@ -87,13 +103,46 @@ model EmailTemplate {
 }
 
 model FunnelStep {
-  id          String        @id @default(uuid())
-  orderId     String
+  id          Int           @id @default(autoincrement())
+  orderId     Int
   order       Order         @relation(fields: [orderId], references: [id])
-  templateId  String
+  templateId  Int
   template    EmailTemplate @relation(fields: [templateId], references: [id])
   status      String
   sentAt      DateTime?
   attempts    Int          @default(0)
   error       String?
+}
+
+model TrackingUpdate {
+  id          Int      @id @default(autoincrement())
+  status      String
+  location    String
+  description String?
+  createdAt   DateTime @default(now())
+  orderId     Int
+  order       Order    @relation(fields: [orderId], references: [id])
+}
+
+model Address {
+  id            Int      @id @default(autoincrement())
+  street        String
+  streetNumber  String
+  complement    String?
+  zipCode       String
+  neighborhood  String
+  city          String
+  state         String
+  country       String
+  customerId    Int      @unique
+  customer      Customer @relation(fields: [customerId], references: [id])
+}
+
+model Item {
+  id          Int      @id @default(autoincrement())
+  title       String
+  quantity    Int
+  unitPrice   Float
+  orderId     Int
+  order       Order    @relation(fields: [orderId], references: [id])
 }

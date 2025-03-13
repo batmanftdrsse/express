@@ -5,9 +5,50 @@ import prisma from '../lib/prisma'
 const prismaClient = new PrismaClient()
 
 export class TrackingCodeService {
-  private generateCode(): string {
+  private generateNumericPart(): string {
     const numbers = customAlphabet('0123456789', 9)
-    return `SL${numbers()}BR`
+    return numbers()
+  }
+
+  private getShippingType(): string {
+    // DG = Encomenda SEDEX
+    // DL = Encomenda PAC
+    return 'DG'
+  }
+
+  private getCountryCode(): string {
+    return 'BR'
+  }
+
+  async generateUniqueCode(): Promise<string> {
+    const maxAttempts = 10
+    let attempts = 0
+
+    while (attempts < maxAttempts) {
+      const shippingType = this.getShippingType()
+      const numericPart = this.generateNumericPart()
+      const countryCode = this.getCountryCode()
+      
+      const code = `${shippingType}${numericPart}${countryCode}`
+
+      try {
+        // Verifica se o código já existe
+        const existing = await prisma.order.findUnique({
+          where: { trackingCode: code }
+        })
+
+        if (!existing) {
+          return code
+        }
+
+        attempts++
+      } catch (error) {
+        console.error('Erro ao verificar código:', error)
+        throw error
+      }
+    }
+
+    throw new Error('Não foi possível gerar um código único após várias tentativas')
   }
 
   async getTrackingInfo(code: string) {
@@ -69,7 +110,7 @@ export class TrackingCodeService {
     const maxAttempts = 5
 
     while (attempts < maxAttempts) {
-      const code = this.generateCode()
+      const code = await this.generateUniqueCode()
       
       try {
         await prismaClient.order.create({

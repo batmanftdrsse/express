@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import { startOfDay, endOfDay, parseISO } from 'date-fns'
 import prisma from '../lib/prisma'
+import { authMiddleware } from '../middleware/authMiddleware'
 
 const router = Router()
 
@@ -48,5 +49,53 @@ router.get('/dashboard', async (req, res) => {
     res.status(500).json({ error: 'Erro interno do servidor' })
   }
 })
+
+router.get('/dashboard/stats', authMiddleware, async (req, res) => {
+  try {
+    const [
+      totalOrders,
+      emailsSent,
+      pendingDeliveries,
+      recentOrders,
+      ordersByStatus
+    ] = await Promise.all([
+      prisma.order.count(),
+      prisma.emailLog.count({ where: { status: 'SENT' } }),
+      prisma.order.count({ where: { status: 'pending' } }),
+      prisma.order.findMany({
+        take: 10,
+        orderBy: { createdAt: 'desc' },
+        select: {
+          id: true,
+          trackingCode: true,
+          status: true,
+          createdAt: true
+        }
+      }),
+      prisma.order.groupBy({
+        by: ['status'],
+        _count: {
+          status: true
+        }
+      })
+    ]);
+
+    const stats = {
+      totalOrders,
+      emailsSent,
+      pendingDeliveries,
+      recentOrders,
+      ordersByStatus: ordersByStatus.map(item => ({
+        status: item.status,
+        count: item._count.status
+      }))
+    };
+
+    res.json(stats);
+  } catch (error) {
+    console.error('Erro ao buscar estatísticas:', error);
+    res.status(500).json({ error: 'Erro ao buscar estatísticas' });
+  }
+});
 
 export default router 

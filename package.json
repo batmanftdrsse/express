@@ -10,18 +10,22 @@
     "prisma:migrate": "prisma migrate dev",
     "build": "vite build",
     "preview": "vite preview",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "create-admin": "tsx prisma/seed.ts",
+    "db:seed": "ts-node --transpile-only prisma/seed.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/client": "^6.4.1",
+    "@types/jsonwebtoken": "^9.0.9",
     "axios": "^1.6.7",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "date-fns": "^4.1.0",
     "express": "^4.21.2",
+    "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.453.0",
     "mailersend": "^2.3.0",
     "nanoid": "^5.1.0",

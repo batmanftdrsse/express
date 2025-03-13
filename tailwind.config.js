@@ -6,7 +6,37 @@ export default {
   ],
   darkMode: 'class',
   theme: {
-    extend: {},
+    extend: {
+      keyframes: {
+        fadeIn: {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        fadeOut: {
+          '0%': { opacity: '1' },
+          '100%': { opacity: '0' },
+        },
+        slideIn: {
+          '0%': { transform: 'translateY(1rem)' },
+          '100%': { transform: 'translateY(0)' },
+        },
+        slideOut: {
+          '0%': { transform: 'translateY(0)' },
+          '100%': { transform: 'translateY(1rem)' },
+        },
+        gentlePulse: {
+          '0%, 100%': { transform: 'scale(1)' },
+          '50%': { transform: 'scale(1.02)' },
+        }
+      },
+      animation: {
+        fadeIn: 'fadeIn 0.3s ease-out forwards',
+        fadeOut: 'fadeOut 0.3s ease-out forwards',
+        slideIn: 'slideIn 0.3s ease-out forwards',
+        slideOut: 'slideOut 0.3s ease-out forwards',
+        gentlePulse: 'gentlePulse 3s ease-in-out infinite',
+      },
+    },
   },
   plugins: [],
 }

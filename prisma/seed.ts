@@ -1,20 +1,40 @@
 import { PrismaClient } from '@prisma/client'
+import bcrypt from 'bcrypt'
+
 const prisma = new PrismaClient()
 
 async function cleanDatabase() {
-  // Limpa os dados existentes na ordem correta
   await prisma.emailLog.deleteMany()
   await prisma.emailSequence.deleteMany()
   await prisma.funnelStep.deleteMany()
   await prisma.emailTemplate.deleteMany()
+  await prisma.trackingUpdate.deleteMany()
+  await prisma.item.deleteMany()
   await prisma.order.deleteMany()
+  await prisma.address.deleteMany()
+  await prisma.customerDocument.deleteMany()
   await prisma.customer.deleteMany()
+  await prisma.user.deleteMany()
 }
 
 async function main() {
   console.log('Limpando banco de dados...')
   await cleanDatabase()
   
+  // Criar usuário admin
+  console.log('Criando usuário admin...')
+  const hashedPassword = await bcrypt.hash('admin123', 10)
+  const admin = await prisma.user.upsert({
+    where: { email: 'admin@rastreioexpress.com' },
+    update: {},
+    create: {
+      email: 'admin@rastreioexpress.com',
+      password: hashedPassword,
+      name: 'Administrador'
+    }
+  })
+  console.log('Usuário admin criado:', admin)
+
   console.log('Criando templates de email...')
   try {
     const templates = await Promise.all([
@@ -50,18 +70,78 @@ async function main() {
     console.log('Criando cliente de teste...')
     const customer = await prisma.customer.create({
       data: {
-        name: 'Cliente Teste',
-        email: 'nicolasfranciscosouzafernando@gmail.com'
+        name: "Maria Silva",
+        email: "maria.silva@email.com",
+        phone: "11999999999",
+        address: {
+          create: {
+            street: "Rua das Flores",
+            streetNumber: "123",
+            complement: "Apto 45",
+            zipCode: "01234-567",
+            neighborhood: "Jardim América",
+            city: "São Paulo",
+            state: "SP",
+            country: "Brasil"
+          }
+        }
       }
     })
 
     console.log('Criando pedido de teste...')
     const order = await prisma.order.create({
       data: {
+        trackingCode: "RE123456789BR",
+        status: "in_transit",
+        currentStep: 3,
         customerId: customer.id,
-        trackingCode: 'TEST123456',
-        status: 'pending',
-        amount: 199.99
+        origin: "Curitiba, PR",
+        destination: "São Paulo, SP",
+        estimatedDelivery: new Date("2024-03-14"),
+        urgentDelivery: true,
+        items: {
+          create: [
+            {
+              title: "Smartphone XYZ",
+              quantity: 1,
+              unitPrice: 500.00
+            }
+          ]
+        },
+        trackingUpdates: {
+          create: [
+            {
+              status: "Objeto entregue ao destinatário",
+              location: "São Paulo, SP",
+              description: "Entrega realizada com sucesso",
+              createdAt: new Date("2024-03-13T16:28:00.000Z")
+            },
+            {
+              status: "Objeto saiu para entrega ao destinatário",
+              location: "São Paulo, SP",
+              description: "Em rota de entrega",
+              createdAt: new Date("2024-03-13T09:15:00.000Z")
+            },
+            {
+              status: "Objeto chegou na unidade de distribuição",
+              location: "São Paulo, SP",
+              description: "Em preparação para saída para entrega",
+              createdAt: new Date("2024-03-12T18:42:00.000Z")
+            },
+            {
+              status: "Objeto em trânsito",
+              location: "Curitiba, PR",
+              description: "Objeto encaminhado para São Paulo/SP",
+              createdAt: new Date("2024-03-12T10:30:00.000Z")
+            },
+            {
+              status: "Objeto postado",
+              location: "Curitiba, PR",
+              description: "Objeto recebido na unidade de exportação",
+              createdAt: new Date("2024-03-11T14:13:00.000Z")
+            }
+          ]
+        }
       }
     })
 
