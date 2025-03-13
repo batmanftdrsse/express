@@ -1,15 +1,14 @@
 import { Router } from 'express';
-import prisma from '../lib/prisma';
+import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 
 const router = Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'sua_chave_secreta_aqui';
+const prisma = new PrismaClient();
 
 router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
-    console.log('Tentativa de login:', { email }); // Log para debug
 
     const user = await prisma.user.findUnique({
       where: { email }
@@ -19,32 +18,28 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ error: 'Usuário não encontrado' });
     }
 
-    const isValid = await bcrypt.compare(password, user.password);
-
-    if (!isValid) {
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
       return res.status(401).json({ error: 'Senha inválida' });
     }
 
     const token = jwt.sign(
-      { 
-        userId: user.id,
-        email: user.email 
-      },
-      JWT_SECRET,
+      { userId: user.id },
+      process.env.JWT_SECRET || 'secret',
       { expiresIn: '24h' }
     );
 
-    return res.json({
+    res.json({
       token,
       user: {
         id: user.id,
-        email: user.email,
-        name: user.name
+        name: user.name,
+        email: user.email
       }
     });
   } catch (error) {
     console.error('Erro no login:', error);
-    return res.status(500).json({ error: 'Erro interno do servidor' });
+    res.status(500).json({ error: 'Erro interno do servidor' });
   }
 });
 

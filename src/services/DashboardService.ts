@@ -1,4 +1,6 @@
 import { format } from 'date-fns'
+import api from './api'
+import { DashboardStats } from '../types/dashboard'
 
 interface DashboardData {
   sales: {
@@ -29,26 +31,25 @@ interface DashboardData {
 }
 
 export class DashboardService {
-  private baseUrl = 'http://localhost:3001/api'
-
   async getDashboardData(startDate: Date, endDate: Date): Promise<DashboardData> {
     try {
-      const response = await fetch(
-        `${this.baseUrl}/dashboard?` + 
-        new URLSearchParams({
+      const response = await api.get('/dashboard', {
+        params: {
           start_date: format(startDate, 'yyyy-MM-dd'),
           end_date: format(endDate, 'yyyy-MM-dd')
-        })
-      )
-
-      if (!response.ok) {
-        throw new Error('Erro ao buscar dados do dashboard')
-      }
-
-      return await response.json()
+        }
+      })
+      return response.data
     } catch (error) {
       console.error('Erro ao carregar dashboard:', error)
       throw error
     }
   }
-} 
+
+  async getStats(): Promise<DashboardStats> {
+    const response = await api.get('/dashboard/stats')
+    return response.data
+  }
+}
+
+export const dashboardService = new DashboardService() 

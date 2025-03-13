@@ -50,7 +50,7 @@ app.use('/api', webhookRoutes)
 app.use('/api', trackingRoutes)
 
 // Rotas de autenticação
-app.use('/auth', authRoutes);
+app.use('/api/auth', authRoutes);
 
 // Rota de health check
 app.get('/api/health', (req, res) => {

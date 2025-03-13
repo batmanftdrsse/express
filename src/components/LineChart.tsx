@@ -1,31 +1,47 @@
-import { Line, LineChart as RechartsLineChart, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts'
+import { Line, LineChart as RechartsLineChart, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 
-const data = [
-  { date: '08/01', value: 10 },
-  { date: '11/01', value: 15 },
-  { date: '14/01', value: 12 },
-  { date: '17/01', value: 18 },
-  { date: '20/01', value: 20 },
-  { date: '23/01', value: 25 },
-  { date: '26/01', value: 22 },
-  { date: '29/01', value: 30 },
-  { date: '01/02', value: 35 },
-  { date: '05/02', value: 28 }
-]
+interface LineChartProps {
+  data: Array<{
+    date: string
+    value: number
+  }>
+}
 
-export function LineChart() {
+export function LineChart({ data }: LineChartProps) {
+  if (!data || data.length === 0) {
+    return <div>Sem dados para exibir</div>
+  }
+
   return (
-    <ResponsiveContainer width="100%" height={300}>
+    <ResponsiveContainer width="100%" height="100%">
       <RechartsLineChart data={data}>
-        <XAxis dataKey="date" />
-        <YAxis />
-        <Tooltip />
-        <Line 
-          type="monotone" 
-          dataKey="value" 
-          stroke="#3B82F6" 
+        <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+        <XAxis 
+          dataKey="date" 
+          stroke="#6B7280"
+          style={{ fontSize: '0.875rem' }}
+        />
+        <YAxis 
+          stroke="#6B7280"
+          style={{ fontSize: '0.875rem' }}
+          tickFormatter={(value) => `R$ ${value}`}
+        />
+        <Tooltip
+          contentStyle={{
+            backgroundColor: 'rgb(31, 41, 55)',
+            border: 'none',
+            borderRadius: '0.375rem',
+            color: 'white'
+          }}
+          formatter={(value) => [`R$ ${value}`, 'Valor']}
+        />
+        <Line
+          type="monotone"
+          dataKey="value"
+          stroke="#6366F1"
           strokeWidth={2}
-          dot={false}
+          dot={{ fill: '#6366F1', strokeWidth: 2 }}
+          activeDot={{ r: 6, fill: '#6366F1' }}
         />
       </RechartsLineChart>
     </ResponsiveContainer>
