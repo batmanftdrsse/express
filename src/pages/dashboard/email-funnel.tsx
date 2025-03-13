@@ -5,6 +5,7 @@ import { MetricCard } from '../../components/MetricCard'
 import { LineChart } from '../../components/LineChart'
 import { DashboardService } from '../../services/DashboardService'
 import { formatCurrency } from '../../utils/format'
+import { DashboardData } from '../../types/dashboard'
 
 const dashboardService = new DashboardService()
 
