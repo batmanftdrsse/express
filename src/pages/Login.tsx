@@ -1,5 +1,6 @@
 import { useAuth } from '../hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
+import { dashboardService } from '../services/dashboardService'
 
 const Login = () => {
   const { login } = useAuth();

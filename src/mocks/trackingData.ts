@@ -70,4 +70,29 @@ export const mockTrackingData = {
     origin: "Curitiba, PR",
     destination: "São Paulo, SP"
   }
-}; 
+};
+
+export const trackingData = {
+  'RE963741852BR': {
+    id: 13,
+    trackingCode: 'RE963741852BR',
+    status: 'waiting_payment',
+    currentStep: 1,
+    createdAt: '2025-03-13T07:22:41.409Z',
+    updatedAt: '2025-03-13T07:22:41.409Z',
+    customerId: 13,
+    origin: null,
+    destination: {
+      recipient: 'Maria Silva',
+      street: 'Rua das Flores',
+      number: '123',
+      neighborhood: 'Jardim América',
+      city: 'São Paulo',
+      state: 'SP',
+      zipCode: '01234-567'
+    },
+    estimatedDelivery: '2024-03-18',
+    urgentDelivery: false,
+    trackingUpdates: []
+  }
+} 

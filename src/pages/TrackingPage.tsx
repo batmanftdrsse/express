@@ -21,6 +21,24 @@ interface TrackingData {
   }
   estimatedDelivery?: string
   currentStatus?: string
+  trackingCode: string
+}
+
+interface ApiResponse {
+  trackingCode: string
+  status: 'waiting_payment' | 'paid' | 'in_transit' | 'delivered'
+  currentStep: number
+  updatedAt: string
+  estimatedDelivery: string
+  destination: {
+    recipient: string
+    street: string
+    number: string
+    neighborhood: string
+    city: string
+    state: string
+    zipCode: string
+  }
 }
 
 export default function TrackingPage() {
@@ -31,33 +49,40 @@ export default function TrackingPage() {
 
   useEffect(() => {
     async function loadTrackingData() {
+      if (!trackingCode) return
+      
       try {
         setLoading(true)
-        const data = await dashboardService.getTrackingStatus(trackingCode!)
+        console.log('Buscando tracking para código:', trackingCode)
+        
+        const response = await fetch(`/api/tracking/${trackingCode}`)
+        const rawData = await response.json()
+        console.log('Dados brutos da API:', rawData)
+        
+        if (!response.ok) {
+          throw new Error('Pedido não encontrado')
+        }
+
+        // Primeiro, vamos mostrar os dados brutos para debug
         setTrackingData({
-          ...data,
-          deliveryAddress: {
-            recipient: 'Maria Silva',
-            street: 'Rua das Flores',
-            number: '123',
-            neighborhood: 'Jardim América',
-            city: 'São Paulo',
-            state: 'SP',
-            zipCode: '01234-567'
-          },
-          estimatedDelivery: '18/03/2024',
-          currentStatus: data.status
+          trackingCode: rawData.trackingCode,
+          status: rawData.status,
+          updatedAt: rawData.updatedAt,
+          history: [],
+          estimatedDelivery: rawData.estimatedDelivery,
+          currentStatus: rawData.status,
+          deliveryAddress: rawData.destination
         })
+
       } catch (err) {
+        console.error('Erro ao carregar tracking:', err)
         setError('Falha ao carregar dados do rastreamento')
       } finally {
         setLoading(false)
       }
     }
 
-    if (trackingCode) {
-      loadTrackingData()
-    }
+    loadTrackingData()
   }, [trackingCode])
 
   if (loading) return <div>Carregando...</div>
