@@ -1,7 +1,6 @@
 import { Router } from 'express';
 import { WebhookService } from '../../services/WebhookService';
 import { validateWebhookPayload } from '../../utils/validators';
-import { WebhookPayload } from '../../types/webhook';
 
 const router = Router();
 const webhookService = new WebhookService();
@@ -11,16 +10,31 @@ router.post('/webhook/payment', async (req, res) => {
     console.log('Webhook recebido:', req.body);
     
     // Valida o payload
-    const payload = validateWebhookPayload(req.body);
+    // Nota: Aqui você também poderia adicionar validação de segurança com HMAC ou JWT
+    // para garantir que a requisição vem realmente do seu gateway de pagamento
+    const payload = req.body;
     
-    // Processa o pagamento e inicia sequência de emails
-    const result = await webhookService.handleTransaction(payload);
+    // Log para debug
+    console.log(`Recebido webhook do gateway para transação ${payload.id}, status: ${payload.status}`);
     
-    res.json({
-      success: true,
-      trackingCode: result.trackingCode,
-      orderId: result.orderId
-    });
+    // Processar apenas pagamentos aprovados
+    if (payload.status === 'paid') {
+      // Processa o pagamento e inicia sequência de emails e rastreamento
+      const result = await webhookService.handleTransaction(payload);
+      
+      return res.json({
+        success: true,
+        trackingCode: result.trackingCode,
+        orderId: result.orderId,
+        message: 'Pedido processado com sucesso'
+      });
+    } else {
+      console.log(`Ignorando webhook com status ${payload.status}`);
+      return res.json({
+        success: true,
+        message: `Webhook com status ${payload.status} recebido, mas não processado`
+      });
+    }
   } catch (error) {
     console.error('Erro no webhook:', error);
     res.status(500).json({ 

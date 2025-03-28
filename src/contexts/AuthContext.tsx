@@ -6,6 +6,7 @@ interface User {
   id: string
   email: string
   name: string
+  role: string
 }
 
 interface AuthContextType {
@@ -14,6 +15,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>
   logout: () => void
   isAuthenticated: boolean
+  isMaster: () => boolean
 }
 
 const AuthContext = createContext<AuthContextType | null>(null)
@@ -39,6 +41,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       console.log('Tentando login com:', { email, password }) // Debug
 
+      // Importante: a rota de login não tem prefixo /api
       const response = await api.post('/auth/login', { 
         email, 
         password 
@@ -46,22 +49,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         // Adicione headers específicos se necessário
         headers: {
           'Content-Type': 'application/json'
-        }
+        },
+        baseURL: 'http://localhost:3001' // Usar a URL base sem o prefixo /api
       })
 
       console.log('Resposta do login:', response.data) // Debug
 
       const { token: newToken, user: userData } = response.data
 
-      setToken(newToken)
-      setUser(userData)
+      // Guardar os dados primeiro
       localStorage.setItem('token', newToken)
       localStorage.setItem('user', JSON.stringify(userData))
+      
+      // Depois atualizar o estado
+      setToken(newToken)
+      setUser(userData)
       api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`
       
-      setTimeout(() => {
-        navigate('/dashboard', { replace: true })
-      }, 100)
+      // Aumentar o delay para garantir que tudo seja salvo antes do redirecionamento
+      // e evitar problemas de atualização da página
+      return new Promise<void>(resolve => {
+        setTimeout(() => {
+          navigate('/dashboard', { replace: true })
+          resolve()
+        }, 500)
+      })
     } catch (error: any) {
       console.error('Erro detalhado no login:', {
         error,
@@ -81,13 +93,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     navigate('/login')
   }
 
+  const isMaster = () => {
+    return !!user && user.role === 'master'
+  }
+
   return (
     <AuthContext.Provider value={{
       user,
       token,
       login,
       logout,
-      isAuthenticated: !!token
+      isAuthenticated: !!token,
+      isMaster
     }}>
       {children}
     </AuthContext.Provider>

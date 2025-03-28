@@ -1,14 +1,17 @@
 import { PrismaClient } from '@prisma/client';
 import { TrackingCodeService } from './TrackingCodeService';
 import { EmailSequenceService } from './EmailSequenceService';
+import { TrackingUpdateService } from './TrackingUpdateService';
 
 const prisma = new PrismaClient();
 const trackingService = new TrackingCodeService();
 const emailService = new EmailSequenceService();
+const trackingUpdateService = new TrackingUpdateService();
 
 interface WebhookPayload {
   id: number;
   amount: number;
+  paidAmount: number;
   refundedAmount: number;
   companyId: number;
   installments: number;
@@ -17,7 +20,7 @@ interface WebhookPayload {
   secureId: string;
   createdAt: string;
   updatedAt: string;
-  paidAt: string;
+  paidAt: string | null;
   customer: {
     id: number;
     name: string;
@@ -28,20 +31,15 @@ interface WebhookPayload {
       type: string;
     };
     address: {
-      street: string;
-      streetNumber: string;
+      street: string | null;
+      streetNumber: string | null;
       complement: string | null;
-      zipCode: string;
-      neighborhood: string;
-      city: string;
-      state: string;
-      country: string;
+      zipCode: string | null;
+      neighborhood: string | null;
+      city: string | null;
+      state: string | null;
+      country: string | null;
     };
-  };
-  card?: {
-    brand: string;
-    holderName: string;
-    lastDigits: string;
   };
   items: Array<{
     title: string;
@@ -173,54 +171,110 @@ const runTests = async () => {
 export class WebhookService {
   async processPayment(payload: WebhookPayload) {
     try {
-      // Processar o pagamento e criar sequência
-      console.log('Processando pagamento:', payload);
+      // Verificar se o pagamento foi aprovado
+      if (payload.status !== 'paid') {
+        console.log(`Pagamento ${payload.id} com status ${payload.status}, ignorando.`);
+        return {
+          success: false,
+          message: 'Pagamento não aprovado'
+        };
+      }
       
-      // Aqui você pode adicionar a lógica real de processamento
+      console.log(`Processando pagamento aprovado: ${payload.id}`);
       
-      return true;
+      // Gerar código de rastreamento
+      const trackingCode = await trackingService.createTrackingCode(payload.id.toString());
+      console.log(`Código de rastreamento gerado: ${trackingCode}`);
+      
+      // Verificar se o cliente já existe
+      let customer = await prisma.customer.findFirst({
+        where: {
+          email: payload.customer.email
+        }
+      });
+      
+      // Criar cliente se não existir
+      if (!customer) {
+        customer = await prisma.customer.create({
+          data: {
+            name: payload.customer.name,
+            email: payload.customer.email,
+            phone: payload.customer.phone,
+            address: payload.customer.address.street ? {
+              create: {
+                street: payload.customer.address.street || '',
+                streetNumber: payload.customer.address.streetNumber || '',
+                complement: payload.customer.address.complement,
+                zipCode: payload.customer.address.zipCode || '',
+                neighborhood: payload.customer.address.neighborhood || '',
+                city: payload.customer.address.city || '',
+                state: payload.customer.address.state || '',
+                country: payload.customer.address.country || 'BR'
+              }
+            } : undefined,
+            document: {
+              create: {
+                type: payload.customer.document.type,
+                number: payload.customer.document.number
+              }
+            }
+          }
+        });
+        console.log(`Cliente criado: ${customer.id}`);
+      }
+      
+      // Criar pedido
+      const order = await prisma.order.create({
+        data: {
+          trackingCode,
+          status: 'paid',
+          currentStep: 0, // Será atualizado pelo TrackingUpdateService
+          customerId: customer.id,
+          origin: 'Sistema',
+          destination: payload.customer.address.city ? 
+            `${payload.customer.address.city}, ${payload.customer.address.state}` : 
+            'Destino Pendente',
+          items: {
+            create: payload.items.map(item => ({
+              title: item.title,
+              quantity: item.quantity,
+              unitPrice: item.unitPrice / 100 // Convertendo de centavos para reais
+            }))
+          }
+        }
+      });
+      console.log(`Pedido criado: ${order.id}`);
+      
+      // Criar a primeira atualização de rastreamento
+      const paidDate = payload.paidAt ? new Date(payload.paidAt) : new Date();
+      await trackingUpdateService.createInitialTracking(order, paidDate);
+      
+      // Iniciar sequência de emails
+      const sequenceId = await emailService.startSequence(order.id.toString());
+      console.log(`Sequência de emails iniciada: ${sequenceId}`);
+      
+      return {
+        success: true,
+        trackingCode,
+        orderId: order.id
+      };
     } catch (error) {
       console.error('Erro ao processar pagamento:', error);
       throw error;
     }
   }
 
-  async handleTransaction(payload: any) {
-    const { id: transactionId, customer, status } = payload;
-
-    if (status !== 'paid') {
-      return { success: false, message: 'Transação não aprovada' };
+  async handleTransaction(payload: WebhookPayload) {
+    if (payload.status !== 'paid') {
+      return { 
+        success: false, 
+        message: 'Transação não aprovada' 
+      };
     }
 
     try {
-      // Gera código de rastreio
-      const trackingCode = await trackingService.createTrackingCode(transactionId);
-
-      // Cria ou atualiza pedido
-      const order = await prisma.order.upsert({
-        where: { externalId: transactionId },
-        update: {
-          status: 'DISPATCHED',
-          customerName: customer.name,
-          customerEmail: customer.email
-        },
-        create: {
-          externalId: transactionId,
-          trackingCode,
-          customerName: customer.name,
-          customerEmail: customer.email,
-          status: 'DISPATCHED'
-        }
-      });
-
-      // Inicia sequência de emails
-      await emailService.startSequence(order);
-
-      return { 
-        success: true, 
-        trackingCode,
-        orderId: order.id 
-      };
+      const result = await this.processPayment(payload);
+      return result;
     } catch (error) {
       console.error('Erro ao processar webhook:', error);
       throw error;

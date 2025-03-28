@@ -1,14 +1,22 @@
 import { create } from 'zustand';
 
-interface AuthStore {
-  token: string | null;
-  user: any | null;
-  isAuthenticated: boolean;
-  setAuth: (token: string, user: any) => void;
-  logout: () => void;
+interface User {
+  id: string;
+  email: string;
+  name?: string;
+  role: string;
 }
 
-export const useAuth = create<AuthStore>((set) => ({
+interface AuthStore {
+  token: string | null;
+  user: User | null;
+  isAuthenticated: boolean;
+  setAuth: (token: string, user: User) => void;
+  logout: () => void;
+  isMaster: () => boolean;
+}
+
+export const useAuth = create<AuthStore>((set, get) => ({
   token: localStorage.getItem('token'),
   user: JSON.parse(localStorage.getItem('user') || 'null'),
   isAuthenticated: !!localStorage.getItem('token'),
@@ -21,5 +29,9 @@ export const useAuth = create<AuthStore>((set) => ({
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     set({ token: null, user: null, isAuthenticated: false });
+  },
+  isMaster: () => {
+    const user = get().user;
+    return !!user && user.role === 'master';
   },
 }));

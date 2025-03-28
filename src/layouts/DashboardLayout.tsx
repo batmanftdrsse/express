@@ -5,8 +5,8 @@ export function DashboardLayout() {
   const { dateRange } = useDateRange()
 
   return (
-    <div className="container mx-auto px-4">
-      <div className="py-8">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+      <div className="container mx-auto px-2 sm:px-4">
         <Outlet />
       </div>
     </div>

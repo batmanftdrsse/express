@@ -7,6 +7,7 @@ import webhookRoutes from './routes/webhook'
 import bcrypt from 'bcrypt';
 import trackingRoutes from './routes/tracking';
 import authRoutes from './routes/auth';
+import adminRoutes from './routes/admin';
 
 const app = express();
 
@@ -52,6 +53,9 @@ app.use('/api', trackingRoutes)
 // Rotas de autenticação
 app.use('/api/auth', authRoutes);
 
+// Rotas administrativas
+app.use('/api/admin', adminRoutes);
+
 // Rota de health check
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -82,7 +86,7 @@ app.post('/auth/login', async (req, res) => {
     }
 
     // Comparar a senha usando bcrypt
-    const validPassword = await bcrypt.compare(password, user.passwordHash);
+    const validPassword = await bcrypt.compare(password, user.password);
     
     if (!validPassword) {
       console.log('Senha incorreta para usuário:', email);
@@ -92,9 +96,13 @@ app.post('/auth/login', async (req, res) => {
     // Login bem sucedido
     console.log('Login bem sucedido:', email);
     res.json({
-      id: user.id,
-      email: user.email,
-      role: user.role
+      token: 'jwt_token_temporario', // Aqui você normalmente geraria um JWT
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name || '',
+        role: user.role
+      }
     });
 
   } catch (error) {

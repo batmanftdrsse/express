@@ -35,13 +35,13 @@ const features = [
 
 export default function Features() {
   return (
-    <section className="py-24 bg-white dark:bg-gray-900 transition-colors">
+    <section className="py-24 bg-white dark:bg-gray-900 transition-colors border-t border-gray-200 dark:border-gray-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-white mb-4">
             Por que Escolher a RastreioExpress?
           </h2>
-          <p className="text-lg text-gray-600 dark:text-gray-400">
+          <p className="text-lg text-gray-700 dark:text-gray-400">
             Experimente serviços de envio de classe mundial com recursos projetados para tornar sua logística simples e eficiente
           </p>
         </div>
@@ -50,23 +50,23 @@ export default function Features() {
           {features.map((feature, index) => (
             <div
               key={index}
-              className="group bg-gray-50 dark:bg-gray-800 p-8 rounded-2xl hover:bg-blue-50 dark:hover:bg-blue-900/20 
-                       transition-all duration-300 border border-gray-100 dark:border-gray-700"
+              className="group bg-gray-100 dark:bg-gray-800 p-8 rounded-2xl hover:bg-blue-50 dark:hover:bg-blue-900/20 
+                       transition-all duration-300 border border-gray-200 dark:border-gray-700 shadow-sm"
             >
               <div className="flex items-start">
                 <div className="flex-shrink-0">
                   <div className="p-3 bg-blue-100 dark:bg-blue-900/50 rounded-lg group-hover:bg-blue-200 
                               dark:group-hover:bg-blue-800/50 transition-colors">
-                    <div className="text-blue-600 dark:text-blue-400">
+                    <div className="text-blue-700 dark:text-blue-400">
                       {feature.icon}
                     </div>
                   </div>
                 </div>
                 <div className="ml-4">
-                  <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+                  <h3 className="text-xl font-semibold text-gray-800 dark:text-white mb-2">
                     {feature.title}
                   </h3>
-                  <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
+                  <p className="text-gray-700 dark:text-gray-400 leading-relaxed">
                     {feature.description}
                   </p>
                 </div>

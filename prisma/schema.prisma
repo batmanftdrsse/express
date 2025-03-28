@@ -19,12 +19,20 @@ enum EmailType {
   SHIPPING_UPDATE
 }
 
+enum SMSStatus {
+  SENT
+  FAILED
+  PENDING
+}
+
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
   password  String
   name      String?
+  role      String   @default("user") // Valores: "user" ou "master"
   createdAt DateTime @default(now())
+  apiConfigs ApiConfig[]
 }
 
 model Customer {
@@ -64,6 +72,7 @@ model Order {
   urgentDelivery   Boolean       @default(false)
   emailSequence    EmailSequence?
   funnelSteps      FunnelStep[]
+  payments         PaymentTransaction[]
 }
 
 model EmailSequence {
@@ -145,4 +154,39 @@ model Item {
   unitPrice   Float
   orderId     Int
   order       Order    @relation(fields: [orderId], references: [id])
+}
+
+model SMSLog {
+  id          Int       @id @default(autoincrement())
+  phone       String
+  message     String
+  status      SMSStatus @default(PENDING)
+  sentAt      DateTime  @default(now())
+  orderId     Int?
+  metadata    String?   // JSON string para SQLite
+}
+
+model PaymentTransaction {
+  id           Int       @id @default(autoincrement())
+  trackingCode String
+  amount       Int
+  status       String    @default("pending") // pending, paid, expired, canceled
+  paymentMethod String    @default("pix")    // Método de pagamento (apenas pix por enquanto)
+  pixCode      String?   // Código PIX (pode ser null para outros métodos)
+  createdAt    DateTime  @default(now())
+  paidAt       DateTime?
+  orderId      Int?
+  order        Order?    @relation(fields: [orderId], references: [id])
+}
+
+model ApiConfig {
+  id         Int      @id @default(autoincrement())
+  apiKey     String
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  userId     Int
+  user       User     @relation(fields: [userId], references: [id])
+  active     Boolean  @default(true)
+  
+  @@index([active])
 }

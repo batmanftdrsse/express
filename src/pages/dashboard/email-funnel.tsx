@@ -3,11 +3,9 @@ import { DollarSign, Package, CreditCard, QrCode, Receipt } from 'lucide-react'
 import { DateRangePicker } from '../../components/DateRangePicker'
 import { MetricCard } from '../../components/MetricCard'
 import { LineChart } from '../../components/LineChart'
-import { DashboardService } from '../../services/DashboardService'
+import { dashboardService } from '../../services/dashboardService'
 import { formatCurrency } from '../../utils/format'
 import { DashboardData } from '../../types/dashboard'
-
-const dashboardService = new DashboardService()
 
 export default function EmailFunnelPage() {
   const [dateRange, setDateRange] = useState({

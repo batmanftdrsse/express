@@ -9,15 +9,16 @@ import { Toaster } from 'react-hot-toast'
 async function enableMocking() {
   if (process.env.NODE_ENV === 'development') {
     const { worker } = await import('./mocks/browser')
-    console.log('Iniciando MSW...')
-    return worker.start({
+    console.log('=== MSW SETUP ===')
+    console.log('Iniciando MSW no ambiente de desenvolvimento')
+    await worker.start({
       onUnhandledRequest: 'bypass',
       serviceWorker: {
         url: '/mockServiceWorker.js'
       }
-    }).then(() => {
-      console.log('MSW iniciado com sucesso!')
     })
+    console.log('MSW iniciado com sucesso!')
+    console.log('==================')
   }
 }
 

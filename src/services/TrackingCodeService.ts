@@ -11,9 +11,8 @@ export class TrackingCodeService {
   }
 
   private getShippingType(): string {
-    // DG = Encomenda SEDEX
-    // DL = Encomenda PAC
-    return 'DG'
+    // Código de serviço RE para rastreamento internacional
+    return 'RE'
   }
 
   private getCountryCode(): string {
@@ -61,12 +60,6 @@ export class TrackingCodeService {
             document: true,
             address: true
           }
-        },
-        transaction: {
-          include: {
-            card: true,
-            items: true
-          }
         }
       }
     })
@@ -92,45 +85,19 @@ export class TrackingCodeService {
         phone: order.customer.phone,
         document: order.customer.document,
         address: order.customer.address
-      },
-      transaction: order.transaction ? {
-        amount: order.transaction.amount,
-        paymentMethod: order.transaction.paymentMethod,
-        status: order.transaction.status,
-        installments: order.transaction.installments,
-        paidAt: order.transaction.paidAt,
-        card: order.transaction.card,
-        items: order.transaction.items
-      } : undefined
+      }
     }
   }
 
   async createTrackingCode(transactionId: string): Promise<string> {
-    let attempts = 0
-    const maxAttempts = 5
-
-    while (attempts < maxAttempts) {
-      const code = await this.generateUniqueCode()
-      
-      try {
-        await prismaClient.order.create({
-          data: {
-            trackingCode: code,
-            externalId: transactionId,
-            status: 'PENDING'
-          }
-        })
-        
-        return code
-      } catch (error) {
-        if (error.code === 'P2002') { // Unique constraint error
-          attempts++
-          continue
-        }
-        throw error
-      }
+    // Gerar um código de rastreamento fixo para exemplos se solicitado
+    if (transactionId.startsWith('EXEMPLO')) {
+      // Extrair o número do exemplo (1-5)
+      const exampleNumber = transactionId.replace('EXEMPLO', '');
+      return `RE${exampleNumber.padStart(9, '0')}BR`;
     }
-
-    throw new Error('Não foi possível gerar um código único após várias tentativas')
+    
+    // Caso contrário, gerar um código aleatório
+    return this.generateUniqueCode();
   }
 } 

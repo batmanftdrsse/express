@@ -1,12 +1,16 @@
 import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
+import adminRoutes from '../routes/admin';
 
 const app = express();
 const prisma = new PrismaClient();
 
 app.use(cors());
 app.use(express.json());
+
+// Registrar as rotas de administração
+app.use('/api', adminRoutes);
 
 // Rota para dados do funil
 app.get('/api/funnel-data', async (req, res) => {

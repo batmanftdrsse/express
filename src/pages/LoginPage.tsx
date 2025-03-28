@@ -22,11 +22,14 @@ export default function LoginPage() {
 
     try {
       await login(email, password);
-      toast.success('Login realizado com sucesso!');
-    } catch (error) {
-      setError('Falha no login. Verifique suas credenciais.');
-      toast.error('Falha no login. Verifique suas credenciais.');
+      // Não usar toast aqui, pois o redirecionamento pode ser muito rápido
+      // e o toast não aparecerá
+    } catch (error: any) {
       console.error('Erro no login:', error);
+      const errorMessage = error.response?.data?.error || 
+                          'Falha no login. Verifique suas credenciais.';
+      setError(errorMessage);
+      toast.error(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -102,6 +105,12 @@ export default function LoginPage() {
                 </div>
               </div>
             </div>
+
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
+                {error}
+              </div>
+            )}
 
             <div>
               <button

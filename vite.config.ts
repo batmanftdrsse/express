@@ -12,9 +12,15 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': {
-        target: 'http://localhost:3000',
+      '^/api/(?!config).*': {
+        target: 'http://localhost:3001',
         changeOrigin: true
+      },
+      '/adspay': {
+        target: 'https://api.adspayhub.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/adspay/, ''),
+        secure: false
       }
     }
   }

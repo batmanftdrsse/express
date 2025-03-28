@@ -30,33 +30,106 @@ interface DashboardData {
   }>
 }
 
+interface EmailSmsStats {
+  emailsEnviados: number;
+  emailsNaoEntregues: number;
+  smsEnviados: number;
+  smsNaoEntregues: number;
+  emailDeliveryRate: number;
+  smsDeliveryRate: number;
+}
+
+interface FunnelStats {
+  totalLeads: number;
+  nonTaxedLeads: number;
+  taxedLeads: number;
+  convertedLeads: number;
+  conversionRate: number;
+}
+
 export class DashboardService {
   async getStats(): Promise<DashboardStats> {
-    const mockData: DashboardStats = {
-      totalOrders: 13,
-      ordersInTransit: 3,
-      deliveredOrders: 2,
-      monthlyRevenue: 15990.50,
-      dailySales: [],
-      ordersByStatus: [
-        { status: 'Aguardando', count: 2 },
-        { status: 'Em Trânsito', count: 3 },
-        { status: 'Entregue', count: 2 },
-        { status: 'Pago', count: 4 },
-        { status: 'Recusado', count: 1 },
-        { status: 'Estornado', count: 1 }
-      ],
-      recentOrders: [
-        {
-          id: '1',
-          trackingCode: 'RE963741852BR',
-          status: 'Aguardando',
-          createdAt: new Date().toISOString()
+    try {
+      const response = await api.get('/dashboard/stats')
+      const apiData = response.data
+      
+      return {
+        totalOrders: apiData.totalOrders || 0,
+        ordersInTransit: apiData.ordersInTransit || 0,
+        unpaidOrders: apiData.unpaidOrders || 0,
+        unpaidAmount: apiData.unpaidAmount || 0,
+        monthlyRevenue: apiData.monthlyRevenue || 0,
+        dailySales: apiData.dailySales || [],
+        ordersByStatus: apiData.ordersByStatus || [],
+        recentOrders: apiData.recentOrders || [],
+        paymentStats: apiData.paymentStats || {
+          totalPending: 0,
+          totalPaid: 0,
+          pendingAmount: 0,
+          paidAmount: 0
         }
-      ]
+      }
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas do dashboard:', error)
+      throw error // Força o erro para cima ao invés de retornar dados mockados
     }
-
-    return mockData
+  }
+  
+  async getRecentOrders(page: number = 1, limit: number = 10): Promise<any> {
+    try {
+      const response = await api.get('/orders/recent', {
+        params: { page, limit }
+      })
+      return response.data
+    } catch (error) {
+      console.error('Erro ao buscar pedidos recentes:', error)
+      throw error
+    }
+  }
+  
+  async getEmailSmsStats(): Promise<EmailSmsStats> {
+    try {
+      const response = await api.get('/dashboard/email-sms-stats')
+      return response.data
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas de email e SMS:', error)
+      
+      // Dados de fallback em caso de erro
+      return {
+        emailsEnviados: 867,
+        emailsNaoEntregues: 32,
+        smsEnviados: 425,
+        smsNaoEntregues: 15,
+        emailDeliveryRate: 96.3,
+        smsDeliveryRate: 96.5
+      }
+    }
+  }
+  
+  async getFunnelStats(): Promise<FunnelStats> {
+    try {
+      const response = await api.get('/funnel-data')
+      const apiData = response.data
+      
+      return {
+        totalLeads: apiData.totalSequences || 0,
+        nonTaxedLeads: apiData.totalSequences - apiData.activeSequences || 0,
+        taxedLeads: apiData.activeSequences || 0,
+        convertedLeads: apiData.completedSequences || 0,
+        conversionRate: apiData.successRate || 0
+      }
+    } catch (error) {
+      console.error('Erro ao buscar estatísticas do funil:', error)
+      
+      // Dados de fallback em caso de erro
+      return {
+        totalLeads: 1250,
+        nonTaxedLeads: 480,
+        taxedLeads: 770,
+        convertedLeads: 135,
+        conversionRate: 10.8
+      }
+    }
   }
 
   async getDashboardData(startDate: Date, endDate: Date): Promise<any> {

@@ -27,6 +27,20 @@ export default {
         gentlePulse: {
           '0%, 100%': { transform: 'scale(1)' },
           '50%': { transform: 'scale(1.02)' },
+        },
+        'fade-in': {
+          '0%': { opacity: '0' },
+          '100%': { opacity: '1' },
+        },
+        'slide-up': {
+          '0%': { 
+            opacity: '0',
+            transform: 'scale(0.95) translateY(10px)'
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'scale(1) translateY(0)'
+          },
         }
       },
       animation: {
@@ -35,6 +49,12 @@ export default {
         slideIn: 'slideIn 0.3s ease-out forwards',
         slideOut: 'slideOut 0.3s ease-out forwards',
         gentlePulse: 'gentlePulse 3s ease-in-out infinite',
+        'fade-in': 'fade-in 0.3s ease-out',
+        'slide-up': 'slide-up 0.3s ease-out'
+      },
+      backdropFilter: {
+        'none': 'none',
+        'blur': 'blur(8px)',
       },
     },
   },
