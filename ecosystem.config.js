@@ -11,8 +11,7 @@ module.exports = {
     },
     {
       name: "frontend-rastreio",
-      script: "server-prod.js",
-      interpreter: "node_modules/.bin/tsx",
+      script: "server-prod.mjs",
       env: {
         NODE_ENV: "production",
         PORT: 5173
