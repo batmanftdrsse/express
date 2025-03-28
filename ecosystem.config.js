@@ -7,16 +7,16 @@ module.exports = {
       env: {
         NODE_ENV: "production",
         PORT: 3001
-      },
-      watch: false
+      }
     },
     {
       name: "frontend-rastreio",
-      script: "server.mjs",
+      script: "server-prod.js",
+      interpreter: "node_modules/.bin/tsx",
       env: {
-        NODE_ENV: "production"
-      },
-      watch: false
+        NODE_ENV: "production",
+        PORT: 5173
+      }
     }
   ]
 };
